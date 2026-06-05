@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import TeamCard, { Team } from './TeamCard';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 
 const confederations = ['Todos', 'UEFA', 'CONMEBOL', 'CONCACAF', 'CAF', 'AFC', 'OFC'];
 

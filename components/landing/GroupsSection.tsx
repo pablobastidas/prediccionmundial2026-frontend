@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 
 interface TeamInfo {
   id: number;

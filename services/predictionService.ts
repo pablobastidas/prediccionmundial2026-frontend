@@ -1,4 +1,4 @@
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { Prediction } from '@/types';
 
 export const createPrediction = async (
@@ -55,5 +55,11 @@ export const savePrediction = async (predictionData: {
     return data;
   }
   const { data } = await apiClient.post('/predictions', predictionData);
+  return data;
+};
+
+export const getPredictions = async (leagueId?: number): Promise<Prediction[]> => {
+  const params = leagueId ? { league_id: leagueId } : {};
+  const { data } = await apiClient.get('/predictions', { params });
   return data;
 };

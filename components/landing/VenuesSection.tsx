@@ -1,7 +1,7 @@
 "use client";
 import { MapPin, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 
 interface Venue {
   id: number;

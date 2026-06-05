@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { League } from '@/types';
 
 export const useLeague = (leagueId: number) => {

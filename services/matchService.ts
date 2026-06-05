@@ -1,4 +1,4 @@
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { Match } from '@/types';
 
 export const getAllMatches = async (stage?: string): Promise<Match[]> => {

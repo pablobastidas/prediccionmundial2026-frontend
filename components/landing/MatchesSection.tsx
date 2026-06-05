@@ -1,7 +1,7 @@
 "use client";
 import { Clock, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 
 interface TeamInfo {
   id: number;

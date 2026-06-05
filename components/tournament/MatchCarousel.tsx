@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { Match } from '@/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

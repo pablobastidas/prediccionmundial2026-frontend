@@ -11,16 +11,16 @@ const config: Config = {
     extend: {
       colors: {
         wc: {
-          red:    '#C8102E',
-          blue:   '#0A3161',
-          sky:    '#009DDC',
+          red:    '#FF3D00', // Betano-style Intense Orange-Red
+          blue:   '#5C45F2', // Deep Sports Purple/Blue
+          sky:    '#5C45F2',
           gold:   '#F0A500',
-          green:  '#006847',
-          white:  '#F5F5F5',
-          dark:   '#0D1B2A',
-          card:   '#132237',
-          muted:  '#1E3A52',
-          border: '#2A4A68',
+          green:  '#00D26A',
+          white:  '#12141D', // Text color in light theme
+          dark:   '#F4F6F9', // Page background color
+          card:   '#FFFFFF', // Surface background color
+          muted:  '#64748B', // Muted text color
+          border: 'rgba(0, 0, 0, 0.08)', // Border color
         },
         brand: {
           dark: '#FFFFFF',
@@ -38,8 +38,8 @@ const config: Config = {
         display: ['var(--font-sora)', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'hero-gradient': 'linear-gradient(135deg, #0A3161 0%, #0D1B2A 50%, #006847 100%)',
-        'card-gradient': 'linear-gradient(145deg, #132237 0%, #1E3A52 100%)',
+        'hero-gradient': 'linear-gradient(135deg, rgba(92, 69, 242, 0.15) 0%, #F4F6F9 50%, rgba(0, 210, 106, 0.1) 100%)',
+        'card-gradient': 'linear-gradient(145deg, #FFFFFF 0%, #F4F6F9 100%)',
         'gold-gradient': 'linear-gradient(135deg, #F0A500 0%, #FFD166 100%)',
       },
       boxShadow: {

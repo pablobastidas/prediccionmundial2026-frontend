@@ -1,4 +1,4 @@
-import apiClient from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { Tournament, Team } from '@/types';
 
 export const getCurrentTournament = async (): Promise<Tournament> => {

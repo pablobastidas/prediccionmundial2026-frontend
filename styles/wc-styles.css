@@ -29,18 +29,18 @@
   }
 }
 
-/* Custom Scrollbar for Dark UI */
+/* Custom Scrollbar for Light UI */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0D1B2A;
+  background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E3A52;
+  background: var(--border);
   border-radius: 9999px;
-  border: 2px solid #0D1B2A;
+  border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2A4A68;
+  background: var(--fg-muted);
 }

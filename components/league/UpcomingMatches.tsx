@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import apiClient from '../../lib/api';
+import apiClient from '../../lib/apiClient';
 import { Match, Prediction } from '../../types';
 import { MatchCard } from '../match/MatchCard';
 import { Spinner } from '../ui/Spinner';

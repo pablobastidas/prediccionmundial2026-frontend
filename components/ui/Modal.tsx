@@ -4,13 +4,13 @@ export const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: stri
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-slate-900/40 backdrop-blur-sm px-4">
-      <div className="bg-white rounded-[2rem] shadow-elevated w-full max-w-md overflow-hidden border border-brand-slate-100">
-        <div className="px-8 py-6 border-b border-brand-slate-50 flex justify-between items-center">
-          <h3 className="text-xl font-black uppercase tracking-tighter text-brand-slate-900">{title}</h3>
-          <button onClick={onClose} className="p-2 rounded-xl bg-brand-slate-50 text-brand-slate-400 hover:text-brand-slate-900 transition-colors">✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="card w-full max-w-md overflow-hidden relative">
+        <div className="flex" style={{ justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <h3 className="font-display" style={{ fontSize: '1.5rem', margin: 0 }}>{title}</h3>
+          <button onClick={onClose} style={{ fontSize: '1.5rem', opacity: 0.5 }}>✕</button>
         </div>
-        <div className="p-8">{children}</div>
+        <div>{children}</div>
       </div>
     </div>
   );

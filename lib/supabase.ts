@@ -30,14 +30,39 @@ if (supabaseUrl.includes('dummy')) {
     console.log('Mocking signInWithOtp for:', args.email);
     await new Promise(resolve => setTimeout(resolve, 800));
     const session = { 
-      access_token: 'fake-token', 
+      access_token: `fake-token|${args.email}|${args.email.split('@')[0]}`, 
       user: { id: 'demo-id', email: args.email, user_metadata: { display_name: args.email.split('@')[0] } } 
     };
     setMockSession(session);
     if (authListener) authListener('SIGNED_IN', session);
     return { data: { user: session.user, session }, error: null } as any;
   };
+
+  supabase.auth.signUp = async (args: any) => {
+    console.log('Mocking signUp for:', args.email);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const displayName = args.options?.data?.full_name || args.email.split('@')[0];
+    const session = { 
+      access_token: `fake-token|${args.email}|${displayName}`, 
+      user: { id: 'demo-id', email: args.email, user_metadata: args.options?.data || { display_name: displayName } } 
+    };
+    setMockSession(session);
+    if (authListener) authListener('SIGNED_IN', session);
+    return { data: { user: session.user, session }, error: null } as any;
+  };
   
+  supabase.auth.signInWithPassword = async (args: any) => {
+    console.log('Mocking signInWithPassword for:', args.email);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const session = { 
+      access_token: `fake-token|${args.email}|${args.email.split('@')[0]}`, 
+      user: { id: 'demo-id', email: args.email, user_metadata: { display_name: args.email.split('@')[0] } } 
+    };
+    setMockSession(session);
+    if (authListener) authListener('SIGNED_IN', session);
+    return { data: { user: session.user, session }, error: null } as any;
+  };
+
   supabase.auth.getSession = async () => {
     return { data: { session: getMockSession() }, error: null } as any;
   };
