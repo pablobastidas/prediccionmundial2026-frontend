@@ -6,15 +6,16 @@ export default function Home() {
       <style dangerouslySetInnerHTML={{ __html: `
         /* Hero Section */
         .hero {
-          padding: 4rem 0;
+          padding: 4rem 1.25rem;
           text-align: center;
           background: radial-gradient(circle at top right, var(--primary-soft), transparent);
           position: relative;
         }
         .hero h1 {
-          font-size: clamp(2.5rem, 10vw, 6rem);
-          line-height: 0.9;
+          font-size: clamp(2.2rem, 8vw, 5.5rem);
+          line-height: 1.0;
           margin-bottom: 2rem;
+          word-wrap: break-word;
         }
         .hero p {
           font-size: 1rem;
@@ -103,10 +104,9 @@ export default function Home() {
         .cta-banner {
           background: var(--fg);
           color: white;
-          padding: 4rem 1.5rem;
-          border-radius: var(--radius-lg);
+          padding: 4rem 1rem;
           text-align: center;
-          margin: 4rem 0;
+          margin-top: 4rem;
           position: relative;
           overflow: hidden;
         }
@@ -122,15 +122,15 @@ export default function Home() {
             flex-direction: row;
             justify-content: space-between;
           }
-          .hero { padding: 8rem 0; }
+          .hero { padding: 8rem 2rem; }
           .section-header h2 { font-size: 3.5rem; }
           .venue-card { height: 350px; }
           .cta-banner { padding: 6rem 2rem; }
         }
       `}} />
 
-      <div className="container">
-        <nav className="navbar flex">
+      <div style={{ width: '100%', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+        <nav className="navbar container flex">
           <div className="logo">POLLA<span>MUNDIAL</span></div>
           <div className="nav-links flex" style={{ gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href="#grupos" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Grupos</a>
@@ -142,9 +142,11 @@ export default function Home() {
             </div>
           </div>
         </nav>
+      </div>
 
-        <main>
-          <section className="hero">
+      <main style={{ width: '100%', overflow: 'hidden' }}>
+        <section className="hero">
+          <div className="container">
             <div className="badge-slant" style={{ marginBottom: '2rem' }}><span>PROYECTO OFICIAL 2026</span></div>
             <h1>LA COPA MÁS <br/><span className="text-accent">GRANDE</span> DE LA HISTORIA</h1>
             <p>Predice los resultados de los 48 equipos, crea ligas con tus amigos y compite por premios exclusivos en el Mundial de USA, México y Canadá.</p>
@@ -152,9 +154,11 @@ export default function Home() {
               <a href="/" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>Empezar a Jugar</a>
               <a href="/simulator-public" className="btn-secondary" style={{ padding: '1rem 2.5rem', fontSize: '1rem' }}>Probar Simulador</a>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section id="grupos" style={{ padding: '4rem 0' }}>
+        <section id="grupos" style={{ padding: '4rem 0' }}>
+          <div className="container">
             <div className="section-header">
               <div className="pill accent" style={{ display: 'inline-block', marginBottom: '1rem' }}>Formato 48 Equipos</div>
               <h2>LOS <span className="text-accent">GRUPOS</span></h2>
@@ -213,9 +217,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section id="sedes" style={{ padding: '4rem 0' }}>
+        <section id="sedes" style={{ padding: '4rem 0' }}>
+          <div className="container">
             <div className="section-header">
               <div className="pill purple" style={{ display: 'inline-block', marginBottom: '1rem' }}>16 Ciudades Anfitrionas</div>
               <h2>LAS <span className="text-accent">SEDES</span></h2>
@@ -245,32 +251,34 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section id="simulador-promo" style={{ padding: '6rem 0', background: 'var(--bg)', borderRadius: 'var(--radius-lg)', marginTop: '4rem' }}>
-            <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem', alignItems: 'center' }}>
-              <div>
-                <div className="badge-slant" style={{ marginBottom: '1.5rem' }}><span>Interactividad Total</span></div>
-                <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>SIMULADOR <span className="text-accent">GRATUITO</span></h2>
-                <p className="text-muted" style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '2rem' }}>¿Quién será el campeón? Prueba nuestra versión limitada y descubre cómo avanzarían los primeros grupos del mundial.</p>
-                <div className="flex" style={{ gap: '1rem' }}>
-                  <a href="/simulator-public" className="btn-primary" style={{ padding: '1rem 2rem' }}>Probar Ahora</a>
-                  <a href="/register" className="btn-secondary" style={{ padding: '1rem 2rem' }}>Ver Versión Completa</a>
-                </div>
-              </div>
-              <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', padding: '2rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
-                <iframe src="/simulator-public" style={{ width: '100%', height: '500px', border: 'none', borderRadius: '12px' }}></iframe>
+        <section id="simulador-promo" style={{ padding: '6rem 0', background: 'var(--bg)', marginTop: '4rem' }}>
+          <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem', alignItems: 'center' }}>
+            <div>
+              <div className="badge-slant" style={{ marginBottom: '1.5rem' }}><span>Interactividad Total</span></div>
+              <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>SIMULADOR <span className="text-accent">GRATUITO</span></h2>
+              <p className="text-muted" style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '2rem' }}>¿Quién será el campeón? Prueba nuestra versión limitada y descubre cómo avanzarían los primeros grupos del mundial.</p>
+              <div className="flex" style={{ gap: '1rem' }}>
+                <a href="/simulator-public" className="btn-primary" style={{ padding: '1rem 2rem' }}>Probar Ahora</a>
+                <a href="/register" className="btn-secondary" style={{ padding: '1rem 2rem' }}>Ver Versión Completa</a>
               </div>
             </div>
-          </section>
+            <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', padding: '2rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
+              <iframe src="/simulator-public" style={{ width: '100%', height: '500px', border: 'none', borderRadius: '12px' }}></iframe>
+            </div>
+          </div>
+        </section>
 
-          <section className="cta-banner">
+        <section className="cta-banner">
+          <div className="container">
             <h2 style={{ fontSize: 'clamp(2rem, 8vw, 4rem)', marginBottom: '2rem' }}>¿LISTO PARA <span className="text-accent">GANAR</span>?</h2>
             <p style={{ fontSize: '1.1rem', opacity: 0.8, marginBottom: '3rem', fontWeight: 700 }}>Únete a la comunidad de pronosticadores más grande.</p>
             <a href="/register" className="btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.1rem', background: 'white', color: 'var(--fg)', width: '100%', maxWidth: '400px', display: 'inline-block' }}>Crear Mi Cuenta Ahora</a>
-          </section>
-        </main>
-      </div>
+          </div>
+        </section>
+      </main>
 
       <footer className="main-footer">
         <div className="container">

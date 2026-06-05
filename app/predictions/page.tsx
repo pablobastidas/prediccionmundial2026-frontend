@@ -2,13 +2,13 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import LiveTicker from '@/components/LiveTicker';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/Spinner';
 import { getAllMatches } from '@/services/matchService';
 import { getPredictions, savePrediction } from '@/services/predictionService';
 import { getMyLeagues } from '@/services/leagueService';
+import { getGroupsWithTeams } from '@/services/tournamentService';
 import { Match, Prediction } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import AppLayout from '@/components/layout/AppLayout';
@@ -25,6 +25,13 @@ const STAGES: { id: StageType; label: string }[] = [
   { id: 'final', label: 'Final' }
 ];
 
+const SCORING_QUICK_RULES = [
+  { pts: '+5', label: 'Marcador Exacto', icon: '🎯', color: 'var(--success)' },
+  { pts: '+3', label: 'Resultado Correcto', icon: '✅', color: 'var(--primary)' },
+  { pts: '+10', label: 'Bonus Campeón', icon: '🏆', color: '#F0A500' },
+  { pts: '+2', label: 'Bonus Finalista', icon: '⚡', color: 'var(--accent)' },
+];
+
 export default function PredictionsPage() {
   const { user, loading, isAuthenticated, signOut } = useAuth();
   const router = useRouter();
@@ -36,9 +43,19 @@ export default function PredictionsPage() {
   const [activeLeagueId, setActiveLeagueId] = useState<number | null>(null);
   const [noLeagues, setNoLeagues] = useState(false);
   const [quickFilter, setQuickFilter] = useState<'all' | 'pending' | 'finished'>('all');
+  const [showRules, setShowRules] = useState(false);
+  const [groupsData, setGroupsData] = useState<any[]>([]);
 
   const [edits, setEdits] = useState<Record<number, { home: string; away: string; id?: number }>>({});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getGroupsWithTeams()
+        .then(setGroupsData)
+        .catch(err => console.error("Error loading groups in predictions:", err));
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -192,10 +209,22 @@ export default function PredictionsPage() {
   if (noLeagues) {
     return (
       <AppLayout activeRoute="/predictions">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 900 }}>No tienes ligas</h2>
-          <p className="text-muted">Únete o crea una liga para hacer pronósticos.</p>
-          <Link href="/leagues" className="btn-primary">Ir a Ligas</Link>
+        <header className="page-header">
+          <div>
+            <div className="badge-slant" style={{ marginBottom: '0.5rem' }}><span>World Cup 2026</span></div>
+            <h1>MIS <span className="text-accent">PRONÓSTICOS</span></h1>
+          </div>
+        </header>
+        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem', maxWidth: 500, margin: '0 auto' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🎯</div>
+          <h2 style={{ marginBottom: '1rem' }}>Necesitas una liga</h2>
+          <p className="text-muted" style={{ marginBottom: '2rem', fontSize: '0.9rem', fontWeight: 600 }}>
+            Los pronósticos se hacen dentro de una liga. Únete a una existente o crea la tuya propia para comenzar a competir.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/create-league" className="btn-primary">🏆 Crear una liga</Link>
+            <Link href="/join-league" className="btn-secondary">🔑 Unirme con código</Link>
+          </div>
         </div>
       </AppLayout>
     );
@@ -209,11 +238,75 @@ export default function PredictionsPage() {
           <div className="badge-slant" style={{ marginBottom: '0.5rem' }}><span>World Cup 2026</span></div>
           <h1>MIS <span className="text-accent">PRONÓSTICOS</span></h1>
         </div>
-        <div className="flex" style={{ gap: '1rem' }}>
-          <div className="pill accent">{pendingChanges.length} PENDIENTES</div>
+        <div className="flex" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+          {pendingChanges.length > 0 && (
+            <div className="pill accent">{pendingChanges.length} PENDIENTES</div>
+          )}
           <div className="pill purple">{predictions.length} GUARDADOS</div>
+          <button
+            onClick={() => setShowRules(r => !r)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '99px',
+              fontWeight: 800,
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              background: showRules ? 'var(--fg)' : 'var(--bg)',
+              color: showRules ? 'white' : 'var(--fg)',
+              border: '1px solid var(--border)',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            {showRules ? '✕ Cerrar' : '📋 Reglas'}
+          </button>
         </div>
       </header>
+
+      {/* ── SCORING RULES PANEL ── */}
+      {showRules && (
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          padding: '1.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <h3 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>Sistema de <span className="text-accent">Puntuación</span></h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+            {SCORING_QUICK_RULES.map(r => (
+              <div key={r.label} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                background: 'var(--bg)',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>{r.icon}</span>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: '1.1rem', color: r.color, fontStyle: 'italic', lineHeight: 1 }}>{r.pts}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', marginTop: '0.15rem' }}>{r.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            background: 'rgba(255,61,0,0.05)',
+            border: '1px solid var(--accent-soft)',
+            borderRadius: '10px',
+            padding: '0.75rem 1rem',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            color: 'var(--fg-muted)',
+            lineHeight: 1.5,
+          }}>
+            ⚠️ <strong>Cierre de pronósticos:</strong> Los pronósticos cierran al inicio de cada partido. En eliminatorias, los resultados al 90min son los válidos (no tiempo extra). Los empates en puntos se resuelven por mayor cantidad de exactos.
+          </div>
+        </div>
+      )}
 
       {/* Stage Navigation */}
       <div className="flex custom-scrollbar" style={{ gap: '0.5rem', overflowX: 'auto', marginBottom: '1.5rem', paddingBottom: '0.5rem' }}>
@@ -254,28 +347,63 @@ export default function PredictionsPage() {
           No hay partidos para los filtros seleccionados en esta fase.
         </div>
       ) : (
-        Object.entries(groupedMatches).map(([groupName, groupMatches]) => (
-          <div className="group-grid-container" key={groupName} style={{ marginBottom: '3rem' }}>
-            {/* Keeping the sidebar empty or basic since we don't have standings per group in API yet */}
-            <aside className="standings-mini-card">
-              <div className="flex" style={{ justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <h4 style={{ fontSize: '0.85rem', fontStyle: 'italic' }}>TABLA {groupName.toUpperCase()}</h4>
-              </div>
-              <table className="table-compact">
-                <thead>
-                  <tr>
-                    <th>Pos</th>
-                    <th>Equipo</th>
-                    <th>Pts</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colSpan={3} style={{ textAlign: 'center', opacity: 0.5, padding: '1rem 0' }}>Datos no disponibles</td></tr>
-                </tbody>
-              </table>
-            </aside>
+        Object.entries(groupedMatches).map(([groupName, groupMatches]) => {
+          const isGroup = groupName.toLowerCase().startsWith('grupo') || groupName.toLowerCase().startsWith('group');
+          const matchingGroup = groupsData.find(g => g.name.toLowerCase() === groupName.toLowerCase());
 
-            <section className="match-list">
+          return (
+            <div 
+              className="group-grid-container" 
+              key={groupName} 
+              style={{ 
+                marginBottom: '3rem',
+                gridTemplateColumns: isGroup ? undefined : '1fr'
+              }}
+            >
+              {isGroup && (
+                <aside className="standings-mini-card">
+                  <div className="flex" style={{ justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontStyle: 'italic' }}>TABLA {groupName.toUpperCase()}</h4>
+                  </div>
+                  <table className="table-compact">
+                    <thead>
+                      <tr>
+                        <th>Pos</th>
+                        <th>Equipo</th>
+                        <th>Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matchingGroup && matchingGroup.teams && matchingGroup.teams.length > 0 ? (
+                        matchingGroup.teams
+                          .slice()
+                          .sort((a: any, b: any) => (a.position || 99) - (b.position || 99) || b.points - a.points)
+                          .map((t: any, idx: number) => (
+                            <tr key={t.id}>
+                              <td>{t.position || idx + 1}</td>
+                              <td className="flex" style={{ gap: '0.4rem' }}>
+                                <img
+                                  src={`https://flagcdn.com/w20/${t.flag_emoji?.toLowerCase()}.png`}
+                                  alt={t.name}
+                                  width={16}
+                                  height={11}
+                                  style={{ borderRadius: 1, border: '1px solid var(--border)' }}
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                                <span style={{ fontWeight: 800 }}>{t.name}</span>
+                              </td>
+                              <td style={{ fontWeight: 900 }}>{t.points}</td>
+                            </tr>
+                          ))
+                      ) : (
+                        <tr><td colSpan={3} style={{ textAlign: 'center', opacity: 0.5, padding: '1rem 0' }}>Datos no disponibles</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </aside>
+              )}
+
+              <section className="match-list">
               <div className="group-title">
                 <h3>{groupName.toUpperCase()}</h3>
               </div>
@@ -408,10 +536,11 @@ export default function PredictionsPage() {
                   </div>
                 );
               })}
-            </section>
-          </div>
-        ))
-      )}
+             </section>
+           </div>
+          );
+        }))
+      }
 
       {pendingChanges.length > 0 && (
         <div className="sticky-action-bar">

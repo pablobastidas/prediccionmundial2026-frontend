@@ -10,7 +10,6 @@ import { League, Standing } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import apiClient from '@/lib/apiClient';
 import AppLayout from '@/components/layout/AppLayout';
-import LiveTicker from '@/components/LiveTicker';
 
 type Tab = 'standings' | 'invite';
 
@@ -58,7 +57,7 @@ export default function LeaguesPage() {
       };
       fetchData();
     }
-  }, [isAuthenticated, user?.id, user?.user_metadata?.display_name]);
+  }, [isAuthenticated, user?.id]);
 
   const switchLeague = useCallback(async (league: League) => {
     setSelectedLeague(league);
@@ -86,7 +85,7 @@ export default function LeaguesPage() {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-wc-dark">
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Spinner />
       </div>
     );
@@ -97,84 +96,183 @@ export default function LeaguesPage() {
   const leader = standings.find(s => s.position === 1);
   const ptsDiff = leader && myStanding ? leader.total_points - myStanding.total_points : null;
 
-  const getMedalColor = (position: number) => {
-    if (position === 1) return { border: '#F0A500', glow: 'rgba(240,165,0,0.4)', badge: 'bg-wc-gold text-wc-dark', label: '🥇' };
-    if (position === 2) return { border: '#CBD5E1', glow: 'rgba(203,213,225,0.3)', badge: 'bg-gray-400 text-white', label: '🥈' };
-    if (position === 3) return { border: '#CD7F32', glow: 'rgba(205,127,50,0.35)', badge: 'bg-amber-700 text-white', label: '🥉' };
-    return { border: '', glow: '', badge: 'bg-wc-muted text-wc-white/60', label: '' };
+  const getMedalStyle = (position: number) => {
+    if (position === 1) return { background: '#FFB800', color: 'white', boxShadow: '0 4px 12px rgba(255,184,0,0.4)' };
+    if (position === 2) return { background: '#CBD5E1', color: 'white', boxShadow: '0 4px 12px rgba(203,213,225,0.4)' };
+    if (position === 3) return { background: '#CD7F32', color: 'white', boxShadow: '0 4px 12px rgba(205,127,50,0.4)' };
+    return { background: 'var(--bg)', color: 'var(--fg)' };
+  };
+
+  const getMedalLabel = (position: number) => {
+    if (position === 1) return '🥇';
+    if (position === 2) return '🥈';
+    if (position === 3) return '🥉';
+    return position.toString();
   };
 
   return (
     <AppLayout activeRoute="/leagues">
+      <style>{`
+        .league-header-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2rem;
+          padding: 2rem;
+          background: var(--surface);
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--border);
+          box-shadow: var(--shadow-sm);
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+        @media (min-width: 768px) {
+          .league-header-card {
+            flex-direction: row;
+            text-align: left;
+            padding: 3rem;
+            justify-content: space-between;
+          }
+        }
+        .league-logo-large {
+          width: 72px;
+          height: 72px;
+          background: var(--primary);
+          color: white;
+          border-radius: var(--radius-md);
+          display: grid;
+          place-items: center;
+          font-size: 2rem;
+          font-weight: 900;
+          font-style: italic;
+          box-shadow: 0 10px 20px var(--primary-soft);
+          flex-shrink: 0;
+        }
+        .rank-table {
+          width: 100%;
+          border-collapse: collapse;
+          min-width: 500px;
+        }
+        .rank-table th {
+          text-align: left;
+          padding: 1.25rem 1rem;
+          color: var(--fg-muted);
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          border-bottom: 2px solid var(--bg);
+          font-style: normal;
+          font-weight: 800;
+        }
+        .rank-table td {
+          padding: 1.25rem 1rem;
+          border-bottom: 1px solid var(--border);
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+        .rank-table tr:last-child td { border-bottom: none; }
+        .rank-row-me { background: var(--primary-soft); }
+        .rank-row-me:hover { background: var(--primary-soft) !important; }
+        .rank-table tbody tr:hover { background: var(--bg); }
+        .pos-badge {
+          width: 36px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: var(--bg);
+          font-weight: 900;
+          font-size: 0.9rem;
+        }
+        .league-tab-nav {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 2rem;
+          background: var(--bg);
+          padding: 0.35rem;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border);
+        }
+        .league-tab-btn {
+          flex: 1;
+          padding: 0.75rem 1rem;
+          border-radius: 10px;
+          font-weight: 800;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          transition: all 0.2s;
+          color: var(--fg-muted);
+          background: transparent;
+        }
+        .league-tab-btn.active {
+          background: var(--primary);
+          color: white;
+          box-shadow: 0 4px 12px var(--primary-soft);
+        }
+        .invite-token-display {
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-md);
+          padding: 2rem;
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+        .pts-diff-banner {
+          padding: 0.75rem 1rem;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          font-size: 0.85rem;
+          font-weight: 700;
+        }
+        .pts-diff-banner.behind { background: rgba(240,165,0,0.08); border-color: rgba(240,165,0,0.25); }
+        .pts-diff-banner.leader { background: rgba(0,210,106,0.08); border-color: rgba(0,210,106,0.25); color: var(--success); }
+      `}</style>
 
       {/* Page Header */}
-      <div className="mb-6 mt-2">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-wc-sky/10 border border-wc-sky/20 rounded-full px-3 py-1 text-xs font-bold text-wc-sky uppercase tracking-widest mb-3">
-              🏆 Competición Social
-            </div>
-            <h1 className="text-3xl font-black text-wc-white uppercase tracking-tight">
-              LIGAS <span className="text-wc-sky">PRIVADAS</span>
-            </h1>
-          </div>
-          <div className="flex gap-2 flex-wrap shrink-0">
-            <Link href="/explore-leagues" className="px-4 py-2.5 rounded-xl bg-wc-card/60 border border-wc-border text-wc-white/70 font-bold text-xs uppercase tracking-wide hover:border-wc-sky hover:text-wc-sky transition-all">
-              🌍 Explorar
-            </Link>
-            <Link href="/join-league" className="px-4 py-2.5 rounded-xl bg-wc-card/60 border border-wc-border text-wc-white/70 font-bold text-xs uppercase tracking-wide hover:border-wc-sky hover:text-wc-sky transition-all">
-              🔑 Unirse
-            </Link>
-            <Link href="/create-league" className="px-4 py-2.5 rounded-xl bg-wc-sky text-white font-black text-xs uppercase tracking-wide shadow-glow-sky hover:opacity-90 transition-all">
-              ＋ Crear Liga
-            </Link>
-          </div>
+      <header className="page-header">
+        <div>
+          <div className="badge-slant" style={{ marginBottom: '0.5rem' }}><span>Competición Social</span></div>
+          <h1>LIGAS <span className="text-accent">PRIVADAS</span></h1>
         </div>
-      </div>
+        <div className="flex" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link href="/explore-leagues" className="btn-secondary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.8rem' }}>EXPLORAR</Link>
+          <Link href="/join-league" className="btn-secondary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.8rem' }}>UNIRSE</Link>
+          <Link href="/create-league" className="btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.8rem' }}>CREAR LIGA</Link>
+        </div>
+      </header>
 
       {fetching && !selectedLeague ? (
-        <div className="flex justify-center py-20">
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
           <Spinner />
         </div>
       ) : !selectedLeague ? (
         /* ─── Empty State ─── */
-        <div className="text-center py-20 px-4 bg-wc-card/30 border border-wc-border rounded-3xl">
-          <div className="text-6xl mb-4">🏆</div>
-          <h2 className="text-2xl font-black text-wc-white mb-2 uppercase">Aún no estás en ninguna liga</h2>
-          <p className="text-wc-white/50 text-sm font-semibold mb-8 max-w-sm mx-auto">
-            Crea tu propia liga o únete con un código de invitación y comienza a competir.
+        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏆</div>
+          <h2 style={{ marginBottom: '1rem' }}>Aún no estás en ninguna liga</h2>
+          <p className="text-muted" style={{ marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
+            Crea tu propia liga o únete con un código de invitación para comenzar a competir.
           </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link
-              href="/create-league"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-wc-sky text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-glow-sky hover:opacity-90 transition-all"
-            >
-              🏆 Crear mi primera liga
-            </Link>
-            <Link
-              href="/join-league"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-wc-card border border-wc-border text-wc-white/70 font-bold text-sm uppercase rounded-xl hover:border-wc-sky hover:text-wc-sky transition-all"
-            >
-              🔑 Unirme con código
-            </Link>
+          <div className="flex" style={{ gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/create-league" className="btn-primary">🏆 Crear mi primera liga</Link>
+            <Link href="/join-league" className="btn-secondary">🔑 Unirme con código</Link>
           </div>
         </div>
       ) : (
         <>
           {/* League Selector (if multiple) */}
           {leagues.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
+            <div className="flex custom-scrollbar" style={{ gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
               {leagues.map(l => (
                 <button
                   key={l.id}
                   onClick={() => switchLeague(l)}
-                  className={`
-                    shrink-0 px-4 py-2 rounded-xl font-bold text-sm uppercase tracking-wide transition-all border
-                    ${selectedLeague.id === l.id
-                      ? 'bg-wc-sky text-white border-wc-sky shadow-glow-sky'
-                      : 'bg-wc-card/60 border-wc-border text-wc-white/60 hover:border-wc-sky hover:text-wc-sky'
-                    }
-                  `}
+                  className={selectedLeague.id === l.id ? 'pill accent' : 'pill'}
+                  style={{ cursor: 'pointer', border: '1px solid var(--border)', whiteSpace: 'nowrap' }}
                 >
                   {l.name}
                 </button>
@@ -183,172 +281,143 @@ export default function LeaguesPage() {
           )}
 
           {/* League Hero Card */}
-          <div className="bg-wc-card/60 border border-wc-border rounded-2xl overflow-hidden mb-6 backdrop-blur-sm">
-            <div className="h-2 bg-hero-gradient" />
-            <div className="p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-              {/* Avatar */}
-              <div className="w-16 h-16 rounded-2xl bg-wc-dark border border-wc-border flex items-center justify-center text-3xl font-black text-wc-gold shadow-glow-gold shrink-0">
-                {selectedLeague.name.charAt(0).toUpperCase()}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl font-black text-wc-white mb-1">{selectedLeague.name}</h2>
-                <div className="flex gap-2 justify-center sm:justify-start flex-wrap">
-                  <span className="text-xs font-bold text-wc-white/40 bg-wc-muted/30 border border-wc-border rounded-full px-3 py-1">
-                    👥 {selectedLeague.members_count ?? standings.length} participantes
+          <div className="league-header-card">
+            <div className="flex" style={{ gap: '1.5rem', flex: 1 }}>
+              <div className="league-logo-large">{selectedLeague.name.charAt(0).toUpperCase()}</div>
+              <div>
+                <h2 style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>{selectedLeague.name}</h2>
+                <div className="flex" style={{ gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                  <span className="pill accent" style={{ fontSize: '0.65rem' }}>
+                    👥 {selectedLeague.members_count ?? standings.length} Participantes
                   </span>
-                  <span className="text-xs font-bold text-wc-green bg-wc-green/10 border border-wc-green/30 rounded-full px-3 py-1">
+                  <span className="pill purple" style={{ fontSize: '0.65rem' }}>
                     ● Activa
                   </span>
                 </div>
               </div>
-
-              {/* My Position */}
-              {myPosition !== null && (
-                <div className="text-center shrink-0">
-                  <div className="text-xs font-black text-wc-white/40 uppercase tracking-widest mb-1">Tu posición</div>
-                  <div className="text-5xl font-black italic text-wc-sky leading-none">{myPosition}°</div>
-                </div>
-              )}
             </div>
 
-            {/* Leader difference banner */}
-            {ptsDiff !== null && ptsDiff > 0 && leader && (
-              <div className="mx-4 mb-4 p-3 bg-wc-gold/10 border border-wc-gold/20 rounded-xl flex items-center gap-3">
-                <span className="text-xl">📊</span>
-                <p className="text-xs font-bold text-wc-gold/80">
-                  Estás a <span className="text-wc-gold font-black text-sm">{ptsDiff} pts</span> del primer lugar
-                  {leader.display_name && <> — <span className="text-wc-white/60">{leader.display_name}</span></>}
-                </p>
-              </div>
-            )}
-            {ptsDiff === 0 && myStanding && (
-              <div className="mx-4 mb-4 p-3 bg-wc-green/10 border border-wc-green/30 rounded-xl flex items-center gap-3">
-                <span className="text-xl">🏆</span>
-                <p className="text-xs font-bold text-wc-green">¡Eres el líder de la clasificación!</p>
+            {myPosition !== null && (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1.5rem', textAlign: 'center', minWidth: '120px' }}>
+                <p className="text-muted" style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Tu Posición Actual</p>
+                <div style={{ fontSize: '4rem', fontWeight: 900, fontStyle: 'italic', color: 'var(--accent)', lineHeight: 1 }}>{myPosition}°</div>
               </div>
             )}
           </div>
 
+          {/* Points difference banner */}
+          {ptsDiff !== null && ptsDiff > 0 && leader && (
+            <div className="pts-diff-banner behind">
+              <span style={{ fontSize: '1.25rem' }}>📊</span>
+              <p>
+                Estás a <strong style={{ color: '#F0A500' }}>{ptsDiff} pts</strong> del primer lugar
+                {leader.display_name && <> — <span className="text-muted">{leader.display_name}</span></>}
+              </p>
+            </div>
+          )}
+          {ptsDiff === 0 && myStanding && (
+            <div className="pts-diff-banner leader">
+              <span style={{ fontSize: '1.25rem' }}>🏆</span>
+              <p>¡Eres el líder de la clasificación!</p>
+            </div>
+          )}
+
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 bg-wc-card/40 border border-wc-border rounded-xl p-1">
-            {[
-              { id: 'standings' as Tab, icon: '📊', label: 'Clasificación' },
-              { id: 'invite' as Tab, icon: '🔗', label: 'Invitar Amigos' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                id={`league-tab-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all
-                  ${activeTab === tab.id
-                    ? 'bg-wc-sky text-white shadow-glow-sky'
-                    : 'text-wc-white/50 hover:text-wc-white'
-                  }
-                `}
-              >
-                <span>{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
+          <div className="league-tab-nav">
+            <button
+              id="league-tab-standings"
+              className={`league-tab-btn ${activeTab === 'standings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('standings')}
+            >
+              📊 Clasificación
+            </button>
+            <button
+              id="league-tab-invite"
+              className={`league-tab-btn ${activeTab === 'invite' ? 'active' : ''}`}
+              onClick={() => setActiveTab('invite')}
+            >
+              🔗 Invitar Amigos
+            </button>
           </div>
 
           {/* Tab Content */}
           {activeTab === 'standings' && (
             fetching ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}><Spinner /></div>
             ) : standings.length === 0 ? (
-              <div className="text-center py-12 bg-wc-card/30 border border-wc-border rounded-2xl">
-                <div className="text-4xl mb-3">📊</div>
-                <h3 className="text-lg font-black text-wc-white mb-1">Sin clasificación aún</h3>
-                <p className="text-wc-white/50 text-sm">Los puntos aparecerán tras el primer partido finalizado.</p>
+              <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📊</div>
+                <h3 style={{ marginBottom: '0.5rem' }}>Sin clasificación aún</h3>
+                <p className="text-muted">Los puntos aparecerán tras el primer partido finalizado.</p>
               </div>
             ) : (
-              <div className="bg-wc-card/60 border border-wc-border rounded-2xl overflow-hidden backdrop-blur-sm">
-                <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                  <table className="w-full min-w-[500px]">
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
+                  <table className="rank-table">
                     <thead>
-                      <tr className="border-b border-wc-border">
-                        <th className="text-left px-5 py-4 text-xs font-black text-wc-white/40 uppercase tracking-widest">Pos</th>
-                        <th className="text-left px-5 py-4 text-xs font-black text-wc-white/40 uppercase tracking-widest">Participante</th>
-                        <th className="text-center px-3 py-4 text-xs font-black text-wc-white/40 uppercase tracking-widest">Picks</th>
-                        <th className="text-center px-3 py-4 text-xs font-black text-wc-white/40 uppercase tracking-widest">Exactos</th>
-                        <th className="text-right px-5 py-4 text-xs font-black text-wc-white/40 uppercase tracking-widest">Puntos</th>
+                      <tr>
+                        <th>Pos</th>
+                        <th>Participante</th>
+                        <th>Picks</th>
+                        <th>Exactos</th>
+                        <th style={{ textAlign: 'right' }}>Puntos</th>
                       </tr>
                     </thead>
                     <tbody>
                       {standings.map((std) => {
                         const isMe = backendUser?.id && std.user_id === backendUser.id;
-                        const medal = getMedalColor(std.position);
                         const isTop3 = std.position <= 3;
+                        const medalStyle = getMedalStyle(std.position);
+                        const medalLabel = getMedalLabel(std.position);
 
                         return (
                           <tr
                             key={std.user_id}
-                            className={`
-                              border-b border-wc-border/30 last:border-0 transition-colors
-                              ${isMe ? 'bg-wc-sky/5' : 'hover:bg-wc-muted/20'}
-                            `}
-                            style={isTop3 ? { borderLeft: `3px solid ${medal.border}` } : {}}
+                            className={isMe ? 'rank-row-me' : ''}
+                            style={isTop3 ? { borderLeft: `3px solid ${medalStyle.background}` } : {}}
                           >
-                            {/* Position */}
-                            <td className="px-5 py-4">
+                            <td>
                               <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${medal.badge}`}
-                                style={isTop3 ? { boxShadow: `0 0 12px ${medal.glow}` } : {}}
+                                className="pos-badge"
+                                style={isTop3 ? medalStyle : {}}
                               >
-                                {isTop3 ? medal.label : std.position}
+                                {isTop3 ? medalLabel : std.position}
                               </div>
                             </td>
-
-                            {/* Name */}
-                            <td className="px-5 py-4">
-                              <div className="flex items-center gap-3">
+                            <td>
+                              <div className="flex" style={{ gap: '0.75rem' }}>
                                 <img
                                   src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${std.display_name}`}
                                   alt={std.display_name}
-                                  className="w-9 h-9 rounded-full border-2"
-                                  style={{ borderColor: isMe ? '#5C45F2' : 'rgba(0, 0, 0, 0.08)' }}
+                                  style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    border: `2px solid ${isMe ? 'var(--primary)' : 'var(--border)'}`
+                                  }}
                                 />
                                 <div>
-                                  <div className="text-sm font-black text-wc-white flex items-center gap-2">
+                                  <div style={{ fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     {std.display_name}
                                     {isMe && (
-                                      <span className="text-xs bg-wc-sky/20 border border-wc-sky/40 text-wc-sky rounded-full px-2 py-0.5">TÚ</span>
+                                      <span className="pill accent" style={{ padding: '2px 8px', fontSize: '0.5rem', verticalAlign: 'middle' }}>TÚ</span>
                                     )}
                                     {((std as any).exact_predictions ?? 0) >= 3 && (
-                                      <span className="text-xs bg-wc-red/20 border border-wc-red/40 text-wc-red rounded-full px-2 py-0.5 flex items-center gap-0.5" title="¡Racha de Exactos! 🔥">
-                                        🔥 {((std as any).exact_predictions ?? 0)}
+                                      <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--danger)' }} title="¡Racha de Exactos! 🔥">
+                                        🔥 {(std as any).exact_predictions}
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-xs text-wc-white/30 font-semibold">
+                                  <div style={{ fontSize: '0.65rem', opacity: 0.6, textTransform: 'uppercase' }}>
                                     {std.predictions_count} {std.predictions_count === 1 ? 'pronóstico' : 'pronósticos'}
                                   </div>
                                 </div>
                               </div>
                             </td>
-
-                            {/* Correct */}
-                            <td className="px-3 py-4 text-center">
-                              <span className="text-sm font-bold text-wc-white/70">{std.correct_predictions}</span>
-                            </td>
-
-                            {/* Exact */}
-                            <td className="px-3 py-4 text-center">
-                              <span className="text-sm font-bold text-wc-green">{(std as any).exact_predictions ?? 0}</span>
-                            </td>
-
-                            {/* Points */}
-                            <td className="px-5 py-4 text-right">
-                              <span
-                                className="text-lg font-black"
-                                style={{ color: isMe ? '#5C45F2' : isTop3 ? medal.border : '#12141D' }}
-                              >
-                                {std.total_points}
-                              </span>
+                            <td style={{ textAlign: 'center' }}>{std.correct_predictions}</td>
+                            <td style={{ textAlign: 'center', color: 'var(--success)', fontWeight: 800 }}>{(std as any).exact_predictions ?? 0}</td>
+                            <td style={{ textAlign: 'right', fontWeight: 900, fontSize: '1.1rem', color: isMe ? 'var(--accent)' : 'var(--fg)' }}>
+                              {std.total_points}
                             </td>
                           </tr>
                         );
@@ -361,63 +430,52 @@ export default function LeaguesPage() {
           )}
 
           {activeTab === 'invite' && (
-            <div className="space-y-5">
-              <div className="bg-wc-card/60 border border-wc-border rounded-2xl p-6 backdrop-blur-sm">
-                <h3 className="text-lg font-black text-wc-white mb-1">Invita a tus Amigos</h3>
-                <p className="text-wc-white/50 text-sm font-semibold mb-6">
-                  Comparte el enlace o el código de 6 dígitos para que se unan directamente.
-                </p>
+            <div className="card">
+              <h3 style={{ marginBottom: '0.5rem' }}>Invita a tus Amigos</h3>
+              <p className="text-muted" style={{ marginBottom: '2rem', fontSize: '0.85rem' }}>
+                Comparte el enlace o el código de 6 dígitos para que se unan directamente.
+              </p>
 
-                {selectedLeague.invite_token ? (
-                  <>
-                    {/* Token Code Display */}
-                    <div className="bg-wc-dark border border-wc-border rounded-xl p-5 text-center mb-5">
-                      <div className="text-xs font-black text-wc-white/40 uppercase tracking-widest mb-2">Código de Invitación</div>
-                      <div className="text-4xl font-black tracking-[0.4em] text-wc-white" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {selectedLeague.invite_token}
-                      </div>
+              {selectedLeague.invite_token ? (
+                <>
+                  <div className="invite-token-display">
+                    <div style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+                      Código de Invitación
                     </div>
-
-                    {/* Copy Link Button */}
-                    <button
-                      id="copy-invite-link"
-                      onClick={copyInviteLink}
-                      className={`
-                        w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all
-                        flex items-center justify-center gap-2
-                        ${copied
-                          ? 'bg-wc-green/20 border border-wc-green/40 text-wc-green'
-                          : 'bg-wc-sky text-white shadow-glow-sky hover:opacity-90'
-                        }
-                      `}
-                    >
-                      {copied ? '✅ ¡COPIADO!' : '📋 COPIAR ENLACE DE INVITACIÓN'}
-                    </button>
-
-                    {/* Share hint */}
-                    <div className="mt-4 p-4 bg-wc-sky/5 border border-wc-sky/20 rounded-xl">
-                      <p className="text-xs text-wc-white/50 font-semibold text-center leading-relaxed">
-                        💡 Comparte el enlace por WhatsApp, correo o redes sociales. Tus amigos podrán unirse directamente haciendo clic.
-                      </p>
+                    <div style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '0.4em', fontVariantNumeric: 'tabular-nums' }}>
+                      {selectedLeague.invite_token}
                     </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8 text-wc-white/40 font-semibold">
-                    Esta liga no tiene código de invitación activo.
                   </div>
-                )}
-              </div>
+
+                  <button
+                    id="copy-invite-link"
+                    onClick={copyInviteLink}
+                    className={copied ? 'btn-secondary' : 'btn-primary'}
+                    style={{ width: '100%', marginBottom: '1rem' }}
+                  >
+                    {copied ? '✅ ¡COPIADO!' : '📋 COPIAR ENLACE DE INVITACIÓN'}
+                  </button>
+
+                  <p className="text-muted" style={{ fontSize: '0.75rem', textAlign: 'center' }}>
+                    💡 Comparte el enlace por WhatsApp, correo o redes sociales. Tus amigos podrán unirse directamente haciendo clic.
+                  </p>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', opacity: 0.5 }}>
+                  Esta liga no tiene código de invitación activo.
+                </div>
+              )}
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="auto-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: '2rem', textAlign: 'center' }}>
                 {[
-                  { label: 'Miembros', value: selectedLeague.members_count ?? standings.length, color: 'text-wc-sky' },
-                  { label: 'Mi Posición', value: myPosition !== null ? `${myPosition}°` : '—', color: 'text-wc-gold' },
-                  { label: 'Mis Pts', value: myStanding?.total_points ?? 0, color: 'text-wc-green' },
+                  { label: 'Miembros', value: selectedLeague.members_count ?? standings.length, color: 'var(--primary)' },
+                  { label: 'Mi Posición', value: myPosition !== null ? `${myPosition}°` : '—', color: 'var(--accent)' },
+                  { label: 'Mis Pts', value: myStanding?.total_points ?? 0, color: 'var(--success)' },
                 ].map(stat => (
-                  <div key={stat.label} className="bg-wc-card/60 border border-wc-border rounded-xl p-4 text-center">
-                    <div className={`text-2xl font-black ${stat.color} mb-1`}>{stat.value}</div>
-                    <div className="text-xs text-wc-white/40 font-bold uppercase tracking-wide">{stat.label}</div>
+                  <div key={stat.label} style={{ padding: '1rem', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: stat.color, marginBottom: '0.25rem' }}>{stat.value}</div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase' }}>{stat.label}</div>
                   </div>
                 ))}
               </div>

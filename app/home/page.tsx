@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserStats, UserStats } from '@/services/userService';
 import { getAllMatches } from '@/services/matchService';
-import { Match } from '@/types';
+import { getGroupsWithTeams } from '@/services/tournamentService';
+import { Match, TournamentGroup } from '@/types';
 import AppLayout from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/Spinner';
+import WorldCupCountdown from '@/components/WorldCupCountdown';
 
 export default function HomeDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -16,6 +18,8 @@ export default function HomeDashboard() {
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [groups, setGroups] = useState<TournamentGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -28,12 +32,17 @@ export default function HomeDashboard() {
     if (isAuthenticated) {
       const loadDashboardData = async () => {
         try {
-          const [fetchedStats, fetchedMatches] = await Promise.all([
+          const [fetchedStats, fetchedMatches, fetchedGroups] = await Promise.all([
             getUserStats(),
-            getAllMatches()
+            getAllMatches(),
+            getGroupsWithTeams()
           ]);
           setStats(fetchedStats);
           setMatches(fetchedMatches);
+          setGroups(fetchedGroups);
+          if (fetchedGroups && fetchedGroups.length > 0) {
+            setSelectedGroupId(fetchedGroups[0].id);
+          }
         } catch (err) {
           console.error("Error loading dashboard data:", err);
         } finally {
@@ -64,6 +73,11 @@ export default function HomeDashboard() {
 
   const displayName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario';
 
+  const selectedGroup = groups.find(g => g.id === selectedGroupId) || groups[0];
+  const sortedTeams = selectedGroup?.teams
+    ? [...selectedGroup.teams].sort((a, b) => (a.position || 99) - (b.position || 99) || b.points - a.points)
+    : [];
+
   return (
     <AppLayout activeRoute="/home">
       {/* Specific Home Dashboard Local Styles */}
@@ -87,6 +101,23 @@ export default function HomeDashboard() {
         }
         .group-mini-table tr:last-child td {
           border-bottom: none;
+        }
+        .group-select {
+          width: auto;
+          padding: 0.3rem 1.75rem 0.3rem 0.5rem;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--fg);
+          border-radius: var(--radius-sm);
+          font-size: 0.75rem;
+          font-weight: 800;
+          outline: none;
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.5rem center;
+          background-size: 10px;
         }
       `}} />
 
@@ -211,6 +242,9 @@ export default function HomeDashboard() {
               </div>
             )}
 
+            {/* World Cup Countdown */}
+            <WorldCupCountdown />
+
             {/* Upcoming Matches */}
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
               <h3>Próximos <span className="text-accent">Duelos</span></h3>
@@ -300,7 +334,20 @@ export default function HomeDashboard() {
             </div>
 
             {/* Group Standings Mini */}
-            <h3 style={{ marginBottom: '1.5rem' }}>Tablas de <span className="text-accent">Grupos</span></h3>
+            <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0 }}>Tablas de <span className="text-accent">Grupos</span></h3>
+              {groups.length > 0 && (
+                <select 
+                  className="group-select" 
+                  value={selectedGroupId || ''} 
+                  onChange={(e) => setSelectedGroupId(Number(e.target.value))}
+                >
+                  {groups.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
             <div className="card" style={{ marginBottom: '2rem' }}>
               <table className="group-mini-table">
                 <thead>
@@ -311,21 +358,33 @@ export default function HomeDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td className="flex" style={{ gap: '0.5rem' }}><img src="https://flagcdn.com/w20/mx.png" alt="México" /> México</td>
-                    <td>6</td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td className="flex" style={{ gap: '0.5rem' }}><img src="https://flagcdn.com/w20/nl.png" alt="Holanda" /> Países Bajos</td>
-                    <td>4</td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td className="flex" style={{ gap: '0.5rem' }}><img src="https://flagcdn.com/w20/gh.png" alt="Ghana" /> Ghana</td>
-                    <td>1</td>
-                  </tr>
+                  {sortedTeams.length > 0 ? (
+                    sortedTeams.map((t, idx) => (
+                      <tr key={t.id}>
+                        <td>{t.position || idx + 1}</td>
+                        <td className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                          {t.flag_emoji && (
+                            <img 
+                              src={`https://flagcdn.com/w20/${t.flag_emoji.toLowerCase()}.png`} 
+                              alt={t.name}
+                              width={20}
+                              height={14}
+                              style={{ borderRadius: '2px', border: '1px solid var(--border)' }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          )}
+                          <span>{t.name}</span>
+                        </td>
+                        <td>{t.points}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'center', opacity: 0.5, padding: '1.5rem 0' }}>
+                        No hay datos para este grupo
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

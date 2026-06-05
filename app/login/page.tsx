@@ -1,15 +1,34 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Spinner } from '@/components/ui/Spinner';
 
-export default function Login() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { loading: authLoading, isAuthenticated } = useAuth();
+
+  // Redirect to dashboard if user is already logged in
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace('/home');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Read message from query params
+  useEffect(() => {
+    const msg = searchParams.get('message');
+    if (msg === 'session_expired') {
+      setError('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +43,14 @@ export default function Login() {
       router.push('/home');
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--bg)]">
@@ -111,5 +138,17 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <Spinner />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
