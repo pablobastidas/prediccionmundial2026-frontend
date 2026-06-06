@@ -168,52 +168,64 @@ export default function Home() {
             <div className="groups-grid">
               {/* Group A */}
               <div className="group-card">
-                <div className="group-title">Grupo A</div>
+                <div className="group-title">Grupo A (México)</div>
                 <div className="group-team">
                   <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/mx.png" className="team-flag-small" alt="México" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>México</span></div>
                   <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>Anfitrión</span>
                 </div>
                 <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/nl.png" className="team-flag-small" alt="Holanda" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Holanda</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #7</span>
-                </div>
-                <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/gh.png" className="team-flag-small" alt="Ghana" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Ghana</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #60</span>
-                </div>
-              </div>
-
-              {/* Group B */}
-              <div className="group-card">
-                <div className="group-title">Grupo B</div>
-                <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/ca.png" className="team-flag-small" alt="Canadá" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Canadá</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>Anfitrión</span>
-                </div>
-                <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/be.png" className="team-flag-small" alt="Bélgica" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Bélgica</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #4</span>
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/za.png" className="team-flag-small" alt="Sudáfrica" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Sudáfrica</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #59</span>
                 </div>
                 <div className="group-team">
                   <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/kr.png" className="team-flag-small" alt="Corea del Sur" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Corea del Sur</span></div>
                   <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #22</span>
                 </div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/cz.png" className="team-flag-small" alt="Chequia" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Chequia</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #34</span>
+                </div>
               </div>
 
-              {/* Group C */}
+              {/* Group B */}
               <div className="group-card">
-                <div className="group-title">Grupo C</div>
+                <div className="group-title">Grupo B (Canadá)</div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/ca.png" className="team-flag-small" alt="Canadá" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Canadá</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>Anfitrión</span>
+                </div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/ch.png" className="team-flag-small" alt="Suiza" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Suiza</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #19</span>
+                </div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/qa.png" className="team-flag-small" alt="Qatar" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Qatar</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #37</span>
+                </div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/ba.png" className="team-flag-small" alt="Bosnia y Herzegovina" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Bosnia y H.</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #70</span>
+                </div>
+              </div>
+
+              {/* Group D */}
+              <div className="group-card">
+                <div className="group-title">Grupo D (USA)</div>
                 <div className="group-team">
                   <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/us.png" className="team-flag-small" alt="USA" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>USA</span></div>
                   <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>Anfitrión</span>
                 </div>
                 <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/es.png" className="team-flag-small" alt="España" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>España</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #8</span>
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/tr.png" className="team-flag-small" alt="Turquía" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Turquía</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #26</span>
                 </div>
                 <div className="group-team">
-                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/jp.png" className="team-flag-small" alt="Japón" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Japón</span></div>
-                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #18</span>
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/au.png" className="team-flag-small" alt="Australia" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Australia</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #23</span>
+                </div>
+                <div className="group-team">
+                  <div className="flex" style={{ gap: '0.75rem' }}><img src="https://flagcdn.com/w20/py.png" className="team-flag-small" alt="Paraguay" /> <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>Paraguay</span></div>
+                  <span className="text-muted" style={{ fontSize: '0.6rem', fontWeight: 700 }}>FIFA #56</span>
                 </div>
               </div>
             </div>
