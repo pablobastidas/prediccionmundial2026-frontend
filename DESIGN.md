@@ -71,5 +71,12 @@ Todo el proyecto debe mapear a los tokens definidos en `tailwind.config.ts`. **S
 - **FeaturedMatch**: Panel dinámico destacado superior que resalta el partido más relevante (o en vivo) con banderas grandes, marcador real y acceso directo a picks.
 - **Enrutamiento Dinámico**: El logo redirige de forma inteligente a `/leagues` si el usuario está logueado, y a `/` si es un visitante anónimo. Los botones de llamada a la acción (CTA) cambian a "Ir a la Polla" si ya hay una sesión activa.
 
+## 5. Gestión de Horarios y Zona Horaria (Timezone)
+- **FormattedDate Component**: Para evitar diferencias horarias y errores de hidratación de Next.js SSR, toda visualización de fecha/hora de partidos debe realizarse a través del componente `FormattedDate` en `components/FormattedDate.tsx`.
+- **Formateo**:
+  - `full`: Muestra día de la semana, día, mes y hora (ej. `jue, 11 jun, 13:00`). Usado en listado de predicciones.
+  - `short`: Muestra fecha corta y hora separadas por punto medio (ej. `11 jun · 13:00`). Usado en el panel de próximos partidos.
+  - `time`: Muestra únicamente la hora (ej. `13:00`).
+
 ---
 *Este documento es la única referencia válida para rediseñar vistas secundarias (Autenticación, Dashboard interno, Ligas, Ranking y Perfil).*
