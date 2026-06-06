@@ -244,22 +244,43 @@ export default function Home() {
               <div className="venue-card">
                 <img src="https://images.unsplash.com/photo-1510133768164-a8f7e4d4e3dc?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="Estadio Azteca" />
                 <div className="venue-overlay">
-                  <p className="venue-city">Ciudad de México</p>
+                  <p className="venue-city">Ciudad de México 🇲🇽</p>
                   <h3 className="venue-name">Estadio Azteca</h3>
                 </div>
               </div>
               <div className="venue-card">
                 <img src="https://images.unsplash.com/photo-1543351611-58f7a2b21231?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="SoFi Stadium" />
                 <div className="venue-overlay">
-                  <p className="venue-city">Los Ángeles</p>
+                  <p className="venue-city">Los Ángeles 🇺🇸</p>
                   <h3 className="venue-name">SoFi Stadium</h3>
                 </div>
               </div>
               <div className="venue-card">
                 <img src="https://images.unsplash.com/photo-1522778119026-d1d0cf377fde?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="MetLife Stadium" />
                 <div className="venue-overlay">
-                  <p className="venue-city">Nueva York / Nueva Jersey</p>
+                  <p className="venue-city">Nueva York / Nueva Jersey 🇺🇸</p>
                   <h3 className="venue-name">MetLife Stadium</h3>
+                </div>
+              </div>
+              <div className="venue-card">
+                <img src="https://images.unsplash.com/photo-1590059176766-9e8c076fb983?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="BC Place" />
+                <div className="venue-overlay">
+                  <p className="venue-city">Vancouver 🇨🇦</p>
+                  <h3 className="venue-name">BC Place</h3>
+                </div>
+              </div>
+              <div className="venue-card">
+                <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="BMO Field" />
+                <div className="venue-overlay">
+                  <p className="venue-city">Toronto 🇨🇦</p>
+                  <h3 className="venue-name">BMO Field</h3>
+                </div>
+              </div>
+              <div className="venue-card">
+                <img src="https://images.unsplash.com/photo-1600861195091-690c92f1d2cc?auto=format&fit=crop&q=80&w=800" className="venue-img" alt="Estadio BBVA" />
+                <div className="venue-overlay">
+                  <p className="venue-city">Monterrey 🇲🇽</p>
+                  <h3 className="venue-name">Estadio BBVA</h3>
                 </div>
               </div>
             </div>

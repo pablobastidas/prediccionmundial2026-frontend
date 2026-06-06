@@ -64,11 +64,12 @@ export default function HomeDashboard() {
   // Get live match (in progress) or fallback to the latest finished/upcoming match
   const liveMatch = matches.find(m => m.status === 'IN_PROGRESS') || 
                     matches.find(m => m.status === 'FINISHED') || 
+                    matches.find(m => m.status === 'PENDING' || m.status === 'SCHEDULED') ||
                     matches[0];
 
   // Get next 3 upcoming matches to predict
   const upcomingMatches = matches
-    .filter(m => m.status === 'PENDING')
+    .filter(m => m.status === 'PENDING' || m.status === 'SCHEDULED')
     .slice(0, 3);
 
   const displayName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario';

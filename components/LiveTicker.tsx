@@ -15,9 +15,9 @@ export default function LiveTicker() {
     const fetchMatches = async () => {
       try {
         const matches = await getAllMatches();
-        // Filter by status codes: 'IN_PROGRESS' and 'PENDING'
+        // Filter by status codes: 'IN_PROGRESS', 'PENDING', and 'SCHEDULED'
         const liveOrUpcoming = matches
-          .filter(m => m.status === 'IN_PROGRESS' || m.status === 'PENDING')
+          .filter(m => m.status === 'IN_PROGRESS' || m.status === 'PENDING' || m.status === 'SCHEDULED')
           .slice(0, 6);
 
         const items: TickerItem[] = liveOrUpcoming.map(m => {
