@@ -12,6 +12,7 @@ import { getGroupsWithTeams } from '@/services/tournamentService';
 import { Match, Prediction } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import AppLayout from '@/components/layout/AppLayout';
+import FormattedDate from '@/components/FormattedDate';
 
 type StageType = 'group' | 'round_of_32' | 'round_of_16' | 'quarterfinals' | 'semifinals' | 'third_place' | 'final';
 
@@ -442,7 +443,7 @@ export default function PredictionsPage() {
                     }}
                   >
                     <div className="match-v2-header">
-                      <span>🏟️ {new Date(match.match_datetime).toLocaleString('es-ES', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>🏟️ <FormattedDate dateStr={match.match_datetime} format="full" /></span>
                       {isFinished ? (
                         <span style={{ color: '#00D26A', fontWeight: 800, fontSize: '0.7rem' }}>✅ FINALIZADO</span>
                       ) : isSaved ? (

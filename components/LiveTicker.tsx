@@ -29,8 +29,9 @@ export default function LiveTicker() {
             return { live: true, text: `⚽ ${home.toUpperCase()} ${hg} - ${ag} ${away.toUpperCase()} ⚡ EN VIVO` };
           }
           const date = new Date(m.match_datetime);
-          const time = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-          const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const time = date.toLocaleTimeString('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
+          const dateStr = date.toLocaleDateString('es-ES', { timeZone: tz, month: 'short', day: 'numeric' });
           return { live: false, text: `🏆 PRÓXIMO: ${home.toUpperCase()} VS ${away.toUpperCase()} (${dateStr} ${time})` };
         });
 

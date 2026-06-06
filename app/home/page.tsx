@@ -11,6 +11,7 @@ import { Match, TournamentGroup } from '@/types';
 import AppLayout from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/Spinner';
 import WorldCupCountdown from '@/components/WorldCupCountdown';
+import FormattedDate from '@/components/FormattedDate';
 
 export default function HomeDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -282,7 +283,7 @@ export default function HomeDashboard() {
 
                     <div className="match-center-modern">
                       <span className="match-pill">
-                        {new Date(match.match_datetime).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })} · {new Date(match.match_datetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        <FormattedDate dateStr={match.match_datetime} format="short" />
                       </span>
                       <div className="match-score">vs</div>
                       <Link href="/predictions" className="btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.75rem', borderRadius: '99px' }}>
