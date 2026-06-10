@@ -14,8 +14,8 @@ const sora = Sora({
 });
 
 export const metadata = {
-  title: 'Mundial 48 | La Experiencia Oficial',
-  description: 'Compite con tus amigos en la mejor polla social del Mundial United 2026. Predicciones, grupos y calendario real.',
+  title: 'Desafío Mundial | La Experiencia Oficial',
+  description: 'Compite con tus amigos en el mejor desafío social del Mundial United 2026. Predicciones, grupos y calendario real.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

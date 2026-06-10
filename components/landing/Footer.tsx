@@ -16,7 +16,7 @@ export default function Footer() {
                 <Trophy size={20} className="text-wc-dark" />
               </span>
               <div className="flex flex-col leading-none">
-                <span className="font-display font-800 text-wc-white text-lg tracking-wide uppercase">MUNDIAL 48</span>
+                <span className="font-display font-800 text-wc-white text-lg tracking-wide uppercase">DESAFÍO MUNDIAL</span>
                 <span className="font-display text-wc-gold text-xs tracking-[0.2em] font-600">UNITED 2026</span>
               </div>
             </Link>
@@ -84,11 +84,11 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-wc-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-wc-white/20 text-xs font-semibold uppercase tracking-widest">
-            © 2026 Mundial 48. No oficial. Sin relación con FIFA.
+            © 2026 Desafío Mundial. No oficial. Sin relación con FIFA.
           </p>
           <div className="flex gap-8">
             <Link href="/privacy" className="text-wc-white/20 hover:text-wc-white/40 text-[10px] font-black uppercase tracking-widest transition-colors">Privacidad</Link>
-            <a href="#" className="text-wc-white/20 hover:text-wc-white/40 text-[10px] font-black uppercase tracking-widest transition-colors">Términos</a>
+            <Link href="/terms" className="text-wc-white/20 hover:text-wc-white/40 text-[10px] font-black uppercase tracking-widest transition-colors">Términos</Link>
           </div>
         </div>
       </div>

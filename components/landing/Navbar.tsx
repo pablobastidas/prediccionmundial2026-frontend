@@ -35,7 +35,7 @@ export default function Navbar() {
             <Trophy size={20} className="text-wc-dark" />
           </span>
           <div className="flex flex-col leading-none">
-            <span className="font-display font-800 text-wc-white text-lg tracking-wide">MUNDIAL 48</span>
+            <span className="font-display font-800 text-wc-white text-lg tracking-wide">DESAFÍO MUNDIAL</span>
             <span className="font-display text-wc-gold text-xs tracking-[0.2em] font-600">UNITED 2026</span>
           </div>
         </Link>
@@ -104,7 +104,7 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className="block text-center bg-wc-red hover:bg-wc-red/80 text-wc-white font-semibold px-5 py-4 rounded-xl transition-all duration-200"
             >
-              {isAuthenticated ? "Ir a la Polla" : "Jugar Ahora"}
+              {isAuthenticated ? "Ir al Desafío" : "Jugar Ahora"}
             </Link>
           </li>
         </ul>

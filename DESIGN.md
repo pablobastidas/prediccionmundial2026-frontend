@@ -1,6 +1,6 @@
-# Polla Mundial - Sistema de Diseño unificado (DESIGN.md)
+# Desafío Mundial - Sistema de Diseño unificado (DESIGN.md)
 
-Este documento define las reglas visuales y arquitectónicas para todo el frontend de la "Polla Mundial", derivado estrictamente de la vista de Inicio (Home), la cual es nuestra fuente de verdad. El objetivo es homologar las pantallas secundarias para que luzcan consistentes, profesionales y atractivas, manteniendo el loop social.
+Este documento define las reglas visuales y arquitectónicas para todo el frontend de "Desafío Mundial", derivado estrictamente de la vista de Inicio (Home), la cual es nuestra fuente de verdad. El objetivo es homologar las pantallas secundarias para que luzcan consistentes, profesionales y atractivas, manteniendo el loop social.
 
 ## 1. Principios de Diseño (Inspirados en el Home)
 1. **Tema Claro Oficial (`wc-*`)**: La app utiliza un modo claro limpio y deportivo basado en `wc-dark` (`#F4F6F9` como fondo general y `#FFFFFF` para tarjetas/superficies). Se rechazan fondos oscuros o translúcidos oscuros de manera general en modales/tarjetas.

@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
       <section className="privacy-section">
         <h2>1. Responsable del Tratamiento</h2>
         <p>
-          <strong>Mundial 48</strong> es un simulador recreativo de pronósticos deportivos para el Mundial United 2026. El tratamiento de los datos personales recopilados es responsabilidad de la administración interna de la plataforma ("El Responsable"), con domicilio en Santiago de Chile y correo electrónico oficial de contacto: <a href="mailto:privacidad@mundial48.cl" style={{ color: 'var(--primary)', fontWeight: 800 }}>privacidad@mundial48.cl</a>.
+          <strong>Desafío Mundial</strong> es un simulador recreativo de pronósticos deportivos para el Mundial United 2026. El tratamiento de los datos personales recopilados es responsabilidad de la administración interna de la plataforma ("El Responsable"), con domicilio en Santiago de Chile y correo electrónico oficial de contacto: <a href="mailto:privacidad@desafiomundial.cl" style={{ color: 'var(--primary)', fontWeight: 800 }}>privacidad@desafiomundial.cl</a>.
         </p>
         <p>
           Nos comprometemos a velar por el correcto tratamiento de la información bajo los principios de legalidad, finalidad, proporcionalidad, seguridad y confidencialidad.
@@ -37,14 +37,14 @@ export default function PrivacyPolicyPage() {
           <li><strong>Datos de Juego:</strong> Predicciones de resultados de partidos, puntajes acumulados y asignaciones a ligas públicas o privadas.</li>
         </ul>
         <p style={{ fontSize: '0.75rem', color: 'var(--fg-muted)', fontStyle: 'italic' }}>
-          * Mundial 48 no recopila datos sensibles, datos de pago ni información financiera.
+          * Desafío Mundial no recopila datos sensibles, datos de pago ni información financiera.
         </p>
       </section>
 
       <section className="privacy-section">
         <h2>3. Finalidad y Bases de Legitimación</h2>
         <p>
-          Los datos se tratan exclusivamente con la finalidad de gestionar la participación del usuario en la polla mundialista, calcular y comparar puntajes en ligas y asegurar la integridad de la competencia.
+          Los datos se tratan exclusivamente con la finalidad de gestionar la participación del usuario en el desafío mundialista, calcular y comparar puntajes en ligas y asegurar la integridad de la competencia.
         </p>
         <p>
           La base legal que legitima el tratamiento de sus datos es:
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
       <section className="privacy-section">
         <h2>6. Procedimiento, Retención y Contacto</h2>
         <p>
-          <strong>Cómo ejercer sus derechos:</strong> Para solicitar su información, modificar su nickname, revocar su consentimiento o solicitar la eliminación total (derecho a la cancelación de datos), envíe una comunicación desde el correo registrado en su cuenta a <a href="mailto:privacidad@mundial48.cl" style={{ color: 'var(--primary)', fontWeight: 800 }}>privacidad@mundial48.cl</a> con el asunto "Derechos ARCO Ley 19.628". Atenderemos su requerimiento en un plazo máximo de 10 días hábiles.
+          <strong>Cómo ejercer sus derechos:</strong> Para solicitar su información, modificar su nickname, revocar su consentimiento o solicitar la eliminación total (derecho a la cancelación de datos), envíe una comunicación desde el correo registrado en su cuenta a <a href="mailto:privacidad@desafiomundial.cl" style={{ color: 'var(--primary)', fontWeight: 800 }}>privacidad@desafiomundial.cl</a> con el asunto "Derechos ARCO Ley 19.628". Atenderemos su requerimiento en un plazo máximo de 10 días hábiles.
         </p>
         <p>
           <strong>Tiempo de retención:</strong> Los datos se conservarán de forma segura mientras mantenga su perfil activo. Tras el término de las actividades asociadas al Mundial United 2026 y cierre definitivo de la plataforma (máximo 30 días después de la finalización del torneo), todas las bases de datos de juego y accesos de usuarios serán eliminadas o anonimizadas de forma definitiva y segura.
@@ -110,7 +110,7 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <div style={{ textAlign: 'center', marginTop: '4rem', opacity: 0.5, fontSize: '0.8rem', fontWeight: 600 }}>
-        <p>Compromiso de Transparencia PollaMundial Pro 2026</p>
+        <p>Compromiso de Transparencia Desafío Mundial Pro 2026</p>
       </div>
     </div>
   );
@@ -248,7 +248,7 @@ export default function PrivacyPolicyPage() {
       {/* Header / Navbar */}
       <div style={{ width: '100%', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <nav className="navbar container flex">
-          <div className="logo">POLLA<span>MUNDIAL</span></div>
+          <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
           <div className="nav-links flex" style={{ gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link href="/#grupos" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Grupos</Link>
             <Link href="/#sedes" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Sedes</Link>
@@ -277,7 +277,7 @@ export default function PrivacyPolicyPage() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="logo">POLLA<span>MUNDIAL</span></div>
+              <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
               <p>La plataforma oficial de predicciones para el Mundial 2026. Vive la emoción del fútbol, compite con amigos y gana premios increíbles.</p>
               <div className="footer-socials">
                 <a href="#" className="social-link">𝕏</a>
@@ -319,7 +319,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div className="footer-bottom">
-            <div className="copyright">© 2026 PollaMundial. Todos los derechos reservados.</div>
+            <div className="copyright">© 2026 Desafío Mundial. Todos los derechos reservados.</div>
             <div className="footer-legal">
               <Link href="/terms">Términos</Link>
               <Link href="/privacy">Privacidad</Link>

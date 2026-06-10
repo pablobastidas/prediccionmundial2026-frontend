@@ -19,7 +19,7 @@ export default function TermsPage() {
       <section className="privacy-section">
         <h2>1. Aceptación de los Términos</h2>
         <p>
-          Al registrarse, acceder o utilizar la plataforma <strong>PollaMundial 2026 (Mundial 48)</strong>, usted manifiesta su consentimiento y aceptación expresa de los presentes Términos y Condiciones de Uso. Si no está de acuerdo con estas condiciones, deberá abstenerse de interactuar con el sitio y solicitar la eliminación de su cuenta.
+          Al registrarse, acceder o utilizar la plataforma <strong>Desafío Mundial 2026</strong>, usted manifiesta su consentimiento y aceptación expresa de los presentes Términos y Condiciones de Uso. Si no está de acuerdo con estas condiciones, deberá abstenerse de interactuar con el sitio y solicitar la eliminación de su cuenta.
         </p>
       </section>
 
@@ -29,7 +29,7 @@ export default function TermsPage() {
           Esta plataforma es de carácter estrictamente <strong>recreativo, lúdico y de simulación deportiva</strong>. 
         </p>
         <p>
-          Mundial 48 no es una casa de apuestas online, no recauda dinero para apuestas, ni gestiona transacciones de azar. Todo el sistema de puntuaciones y rankings virtuales es meramente simulado. Cualquier acuerdo de premios, dinero o transacciones de valor realizado de forma externa en ligas privadas es de exclusiva responsabilidad de los organizadores y participantes de dicha liga, quedando la administración de Mundial 48 totalmente al margen de ello.
+          Desafío Mundial no es una casa de apuestas online, no recauda dinero para apuestas, ni gestiona transacciones de azar. Todo el sistema de puntuaciones y rankings virtuales es meramente simulado. Cualquier acuerdo de premios, dinero o transacciones de valor realizado de forma externa en ligas privadas es de exclusiva responsabilidad de los organizadores y participantes de dicha liga, quedando la administración de Desafío Mundial totalmente al margen de ello.
         </p>
       </section>
 
@@ -55,7 +55,7 @@ export default function TermsPage() {
       <section className="privacy-section">
         <h2>5. Propiedad Intelectual y Exención de Relación Oficial</h2>
         <p>
-          La plataforma Mundial 48 es un sitio independiente desarrollado para fanáticos del fútbol. Los nombres de selecciones nacionales, banderas, estadios y marcas registradas de la FIFA o del Mundial United 2026 son propiedad de sus respectivos dueños y se mencionan exclusivamente con fines ilustrativos y referenciales. Este sitio no está afiliado, patrocinado, respaldado ni asociado oficialmente de ninguna manera con la FIFA ni con las federaciones nacionales de fútbol.
+          La plataforma Desafío Mundial es un sitio independiente desarrollado para fanáticos del fútbol. Los nombres de selecciones nacionales, banderas, estadios y marcas registradas de la FIFA o del Mundial United 2026 son propiedad de sus respectivos owners y se mencionan exclusivamente con fines ilustrativos y referenciales. Este sitio no está afiliado, patrocinado, respaldado ni asociado oficialmente de ninguna manera con la FIFA ni con las federaciones nacionales de fútbol.
         </p>
       </section>
 
@@ -74,7 +74,7 @@ export default function TermsPage() {
       </section>
 
       <div style={{ textAlign: 'center', marginTop: '4rem', opacity: 0.5, fontSize: '0.8rem', fontWeight: 600 }}>
-        <p>Términos de Servicio PollaMundial Pro 2026</p>
+        <p>Términos de Servicio Desafío Mundial Pro 2026</p>
       </div>
     </div>
   );
@@ -212,7 +212,7 @@ export default function TermsPage() {
       {/* Header / Navbar */}
       <div style={{ width: '100%', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <nav className="navbar container flex">
-          <div className="logo">POLLA<span>MUNDIAL</span></div>
+          <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
           <div className="nav-links flex" style={{ gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link href="/#grupos" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Grupos</Link>
             <Link href="/#sedes" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Sedes</Link>
@@ -241,7 +241,7 @@ export default function TermsPage() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="logo">POLLA<span>MUNDIAL</span></div>
+              <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
               <p>La plataforma oficial de predicciones para el Mundial 2026. Vive la emoción del fútbol, compite con amigos y gana premios increíbles.</p>
               <div className="footer-socials">
                 <a href="#" className="social-link">𝕏</a>
@@ -283,7 +283,7 @@ export default function TermsPage() {
           </div>
 
           <div className="footer-bottom">
-            <div className="copyright">© 2026 PollaMundial. Todos los derechos reservados.</div>
+            <div className="copyright">© 2026 Desafío Mundial. Todos los derechos reservados.</div>
             <div className="footer-legal">
               <Link href="/terms">Términos</Link>
               <Link href="/privacy">Privacidad</Link>

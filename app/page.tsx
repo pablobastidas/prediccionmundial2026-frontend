@@ -135,7 +135,7 @@ export default function Home() {
 
       <div style={{ width: '100%', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <nav className="navbar container flex">
-          <div className="logo">POLLA<span>MUNDIAL</span></div>
+          <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
           <div className="nav-links flex" style={{ gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href="#grupos" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Grupos</a>
             <a href="#sedes" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Sedes</a>
@@ -329,7 +329,7 @@ export default function Home() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="logo">POLLA<span>MUNDIAL</span></div>
+              <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
               <p>La plataforma oficial de predicciones para el Mundial 2026. Vive la emoción del fútbol, compite con amigos y gana premios increíbles.</p>
               <div className="footer-socials">
                 <a href="#" className="social-link">𝕏</a>
@@ -371,7 +371,7 @@ export default function Home() {
           </div>
 
           <div className="footer-bottom">
-            <div className="copyright">© 2026 PollaMundial. Todos los derechos reservados.</div>
+            <div className="copyright">© 2026 Desafío Mundial. Todos los derechos reservados.</div>
             <div className="footer-legal">
               <Link href="/terms">Términos</Link>
               <Link href="/privacy">Privacidad</Link>
