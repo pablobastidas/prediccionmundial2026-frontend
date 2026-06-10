@@ -58,7 +58,7 @@ function LoginContent() {
         {/* Left Side: Form */}
         <div className="login-left">
           <Link href="/" className="logo" style={{ marginBottom: '2rem' }}>
-            POLLA<span>MUNDIAL</span>
+            DESAFÍO<span>MUNDIAL</span>
           </Link>
           
           <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>

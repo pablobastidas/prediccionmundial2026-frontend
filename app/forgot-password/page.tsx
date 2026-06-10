@@ -32,7 +32,7 @@ export default function ForgotPassword() {
       <div className="login-box" style={{ maxWidth: '600px' }}>
         <div className="login-left" style={{ padding: '3rem' }}>
           <Link href="/" className="logo" style={{ marginBottom: '2rem', display: 'block', textAlign: 'center' }}>
-            POLLA<span>MUNDIAL</span>
+            DESAFÍO<span>MUNDIAL</span>
           </Link>
           
           <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', textAlign: 'center' }}>

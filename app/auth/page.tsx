@@ -60,7 +60,7 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email: 'demo@mundial48.com' });
+      const { error } = await supabase.auth.signInWithOtp({ email: 'demo@desafiomundial.com' });
       if (error) {
         setMessage('Error al ingresar en modo demo.');
       } else {
@@ -110,7 +110,7 @@ export default function AuthPage() {
             
             <h1 className="text-6xl md:text-8xl font-display font-800 tracking-tighter leading-[0.85] uppercase mb-8">
               PREDICE EL<br/>
-              <span className="text-transparent bg-clip-text bg-gold-gradient">MUNDIAL 48</span>
+              <span className="text-transparent bg-clip-text bg-gold-gradient">DESAFÍO MUNDIAL</span>
             </h1>
             <p className="text-wc-white/40 text-xl md:text-2xl max-w-xl font-medium leading-relaxed">
               Únete a la mayor plataforma social de predicciones. Crea ligas, compite con amigos y sube en el ranking global.
