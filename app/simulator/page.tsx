@@ -5,34 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/Spinner';
 import AppLayout from '@/components/layout/AppLayout';
 import { getGroupsWithTeams } from '@/services/tournamentService';
-
-// ─── DATA ───────────────────────────────────────────────────────────────────────
-const GROUPS: Record<string, { name: string; flag: string }[]> = {
-  A: [{ name: 'México', flag: 'mx' }, { name: 'Países Bajos', flag: 'nl' }, { name: 'Ghana', flag: 'gh' }, { name: 'Uzbekistán', flag: 'uz' }],
-  B: [{ name: 'Canadá', flag: 'ca' }, { name: 'Bélgica', flag: 'be' }, { name: 'Corea del Sur', flag: 'kr' }, { name: 'Malí', flag: 'ml' }],
-  C: [{ name: 'USA', flag: 'us' }, { name: 'España', flag: 'es' }, { name: 'Japón', flag: 'jp' }, { name: 'Zambia', flag: 'zm' }],
-  D: [{ name: 'Argentina', flag: 'ar' }, { name: 'Dinamarca', flag: 'dk' }, { name: 'Ecuador', flag: 'ec' }, { name: 'Omán', flag: 'om' }],
-  E: [{ name: 'Brasil', flag: 'br' }, { name: 'Suiza', flag: 'ch' }, { name: 'Costa Rica', flag: 'cr' }, { name: 'Irak', flag: 'iq' }],
-  F: [{ name: 'Francia', flag: 'fr' }, { name: 'Colombia', flag: 'co' }, { name: 'Noruega', flag: 'no' }, { name: 'Egipto', flag: 'eg' }],
-  G: [{ name: 'Inglaterra', flag: 'gb-eng' }, { name: 'Uruguay', flag: 'uy' }, { name: 'Turquía', flag: 'tr' }, { name: 'Jamaica', flag: 'jm' }],
-  H: [{ name: 'Portugal', flag: 'pt' }, { name: 'Croacia', flag: 'hr' }, { name: 'Irán', flag: 'ir' }, { name: 'Panamá', flag: 'pa' }],
-  I: [{ name: 'Italia', flag: 'it' }, { name: 'Marruecos', flag: 'ma' }, { name: 'Australia', flag: 'au' }, { name: 'Honduras', flag: 'hn' }],
-  J: [{ name: 'Alemania', flag: 'de' }, { name: 'Chile', flag: 'cl' }, { name: 'Nigeria', flag: 'ng' }, { name: 'Catar', flag: 'qa' }],
-  K: [{ name: 'Serbia', flag: 'rs' }, { name: 'Arabia Saudita', flag: 'sa' }, { name: 'Perú', flag: 'pe' }, { name: 'Irlanda', flag: 'ie' }],
-  L: [{ name: 'Polonia', flag: 'pl' }, { name: 'Ucrania', flag: 'ua' }, { name: 'Senegal', flag: 'sn' }, { name: 'Túnez', flag: 'tn' }],
-};
-
-const GROUP_KEYS = Object.keys(GROUPS);
-
-// Scoring rules constant — displayed in the rules panel
-const SCORING_RULES = [
-  { icon: '🎯', pts: '+5', label: 'Marcador Exacto', desc: 'Predijiste el score exacto (ej: 2-1)' },
-  { icon: '✅', pts: '+3', label: 'Resultado Correcto', desc: 'Acertaste ganador o empate sin score exacto' },
-  { icon: '🏆', pts: '+10', label: 'Campeón', desc: 'Predijiste el campeón del torneo (bonus eliminatorias)' },
-  { icon: '⚡', pts: '+2', label: 'Finalista', desc: 'Predijiste un equipo en la final' },
-  { icon: '🥉', pts: '+1', label: 'Top 4', desc: 'Predijiste un equipo en semifinales' },
-  { icon: '❌', pts: '0', label: 'Incorrecto', desc: 'El resultado no coincidió' },
-];
+import { 
+  getSimulatorStatus, 
+  loadSimulatorPrediction, 
+  saveSimulatorPrediction, 
+  SimulatorStatus, 
+  BracketPredictionData 
+} from '@/services/simulatorService';
+import { showToast } from '@/components/ui/Toast';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 type TeamEntry = { name: string; flag: string };
@@ -46,7 +26,15 @@ function emptyMatch(id: string): BracketMatch {
 const FLAG_URL = (code: string) =>
   `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
+// Scoring rules constant — displayed in the rules panel
+const SCORING_RULES = [
+  { icon: '🎯', pts: '+5', label: 'Ganador de Grupo', desc: 'Acertaste el primer lugar del grupo' },
+  { icon: '✅', pts: '+2', label: 'Clasificado', desc: 'Acertaste el segundo lugar del grupo' },
+  { icon: '🏆', pts: '+10', label: 'Campeón', desc: 'Predijiste el campeón real del torneo' },
+  { icon: '⚡', pts: '+2', label: 'Finalista', desc: 'Predijiste un equipo en la final real' },
+  { icon: '🥉', pts: '+1', label: 'Top 4', desc: 'Predijiste un equipo en semifinales reales' },
+];
+
 export default function Simulator() {
   const { loading, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -56,14 +44,37 @@ export default function Simulator() {
   }, [loading, isAuthenticated, router]);
 
   const [activeTab, setActiveTab] = useState<'reglas' | 'grupos' | 'bracket'>('reglas');
-  const [showRulesPanel, setShowRulesPanel] = useState(false);
 
-  // GROUP PHASE state — track 1st and 2nd place per group
+  // GROUP PHASE state — track all 4 positions
   const [groupPicks, setGroupPicks] = useState<Record<string, string[]>>({});
-  const [groupsData, setGroupsData] = useState<Record<string, { name: string; flag: string }[]>>(GROUPS);
+  const [groupsData, setGroupsData] = useState<Record<string, { name: string; flag: string }[]>>({});
+  const [groupsLoading, setGroupsLoading] = useState(true);
 
+  // Best third-placed teams selection
+  const [selectedThirds, setSelectedThirds] = useState<string[]>([]);
+
+  // Bracket state
+  const makeRound = (n: number, prefix: string) =>
+    Array.from({ length: n }, (_, i) => emptyMatch(`${prefix}${i}`));
+
+  const [r32, setR32] = useState<BracketMatch[]>(makeRound(16, 'r32_'));
+  const [r16, setR16] = useState<BracketMatch[]>(makeRound(8, 'r16_'));
+  const [qf, setQf] = useState<BracketMatch[]>(makeRound(4, 'qf_'));
+  const [sf, setSf] = useState<BracketMatch[]>(makeRound(2, 'sf_'));
+  const [final3rd, setFinal3rd] = useState<BracketMatch[]>(makeRound(1, 'f3_'));
+  const [finalMatch, setFinalMatch] = useState<BracketMatch[]>(makeRound(1, 'fin_'));
+  const [champion, setChampion] = useState<TeamEntry | null>(null);
+  const [third, setThird] = useState<TeamEntry | null>(null);
+
+  // Status and database state
+  const [status, setStatus] = useState<SimulatorStatus | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [isRestored, setIsRestored] = useState(false);
+
+  // Load from database groups
   useEffect(() => {
     const fetchGroups = async () => {
+      setGroupsLoading(true);
       try {
         const data = await getGroupsWithTeams();
         if (data && data.length > 0) {
@@ -79,6 +90,8 @@ export default function Simulator() {
         }
       } catch (err) {
         console.error("Error fetching groups for simulator:", err);
+      } finally {
+        setGroupsLoading(false);
       }
     };
     if (isAuthenticated) {
@@ -86,20 +99,186 @@ export default function Simulator() {
     }
   }, [isAuthenticated]);
 
+  // Load State from Database first, fallback to localStorage
+  useEffect(() => {
+    const loadState = async () => {
+      if (!isAuthenticated) return;
+      try {
+        // Load locks status
+        const lockStatus = await getSimulatorStatus();
+        setStatus(lockStatus);
+
+        // Load database prediction
+        const dbPred = await loadSimulatorPrediction();
+        if (dbPred && (dbPred.group_picks || dbPred.bracket_picks)) {
+          restoreState(dbPred);
+        } else {
+          // Fallback to local draft
+          const saved = localStorage.getItem('wc_simulator_state');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            restoreState(parsed);
+          }
+        }
+      } catch (e) {
+        console.error("Error loading simulator state:", e);
+      } finally {
+        setIsRestored(true);
+      }
+    };
+    loadState();
+  }, [isAuthenticated]);
+
+  const restoreState = (data: BracketPredictionData | any) => {
+    if (data.group_picks) setGroupPicks(data.group_picks);
+    if (data.selected_thirds) setSelectedThirds(data.selected_thirds);
+    if (data.r32) setR32(data.r32);
+    else if (data.bracket_picks?.r32) setR32(data.bracket_picks.r32);
+    
+    if (data.r16) setR16(data.r16);
+    else if (data.bracket_picks?.r16) setR16(data.bracket_picks.r16);
+
+    if (data.qf) setQf(data.qf);
+    else if (data.bracket_picks?.qf) setQf(data.bracket_picks.qf);
+
+    if (data.sf) setSf(data.sf);
+    else if (data.bracket_picks?.sf) setSf(data.bracket_picks.sf);
+
+    if (data.finalMatch) setFinalMatch(data.finalMatch);
+    else if (data.bracket_picks?.finalMatch) setFinalMatch(data.bracket_picks.finalMatch);
+
+    if (data.final3rd) setFinal3rd(data.final3rd);
+    else if (data.bracket_picks?.final3rd) setFinal3rd(data.bracket_picks.final3rd);
+
+    if (data.champion) setChampion(data.champion);
+    else if (data.champion_name) setChampion({ name: data.champion_name, flag: 'un' });
+
+    if (data.third) setThird(data.third);
+    else if (data.third_name) setThird({ name: data.third_name, flag: 'un' });
+
+    if (data.activeTab) setActiveTab(data.activeTab);
+  };
+
+  // Local auto-save in localStorage (draft mode)
+  useEffect(() => {
+    if (isRestored) {
+      const currentState = {
+        groupPicks,
+        selectedThirds,
+        r32,
+        r16,
+        qf,
+        sf,
+        finalMatch,
+        final3rd,
+        champion,
+        third,
+        activeTab
+      };
+      localStorage.setItem('wc_simulator_state', JSON.stringify(currentState));
+    }
+  }, [groupPicks, selectedThirds, r32, r16, qf, sf, finalMatch, final3rd, champion, third, activeTab, isRestored]);
+
+  // Handle Save to Database
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload: BracketPredictionData = {
+        group_picks: groupPicks,
+        selected_thirds: selectedThirds,
+        bracket_picks: {
+          r32, r16, qf, sf, finalMatch, final3rd
+        },
+        champion_name: champion?.name || undefined,
+        third_name: third?.name || undefined
+      };
+      await saveSimulatorPrediction(payload);
+      showToast('¡Predicciones del simulador guardadas en base de datos! 💾', 'success');
+    } catch (err: any) {
+      console.error(err);
+      const msg = err?.response?.data?.detail || 'Error al guardar. Verifica las restricciones.';
+      showToast(msg, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Reset simulation state
+  const handleReset = () => {
+    if (window.confirm('¿Seguro que deseas reiniciar toda la simulación?')) {
+      localStorage.removeItem('wc_simulator_state');
+      setGroupPicks({});
+      setSelectedThirds([]);
+      setR32(makeRound(16, 'r32_'));
+      setR16(makeRound(8, 'r16_'));
+      setQf(makeRound(4, 'qf_'));
+      setSf(makeRound(2, 'sf_'));
+      setFinalMatch(makeRound(1, 'fin_'));
+      setFinal3rd(makeRound(1, 'f3_'));
+      setChampion(null);
+      setThird(null);
+      setActiveTab('reglas');
+      showToast('Simulador reiniciado.', 'success');
+    }
+  };
+
   const handleGroupPick = useCallback((group: string, teamName: string) => {
+    if (status?.group_locked) {
+      showToast('La fase de grupos está bloqueada por fecha de fixture.', 'error');
+      return;
+    }
+
     setGroupPicks(prev => {
       const current = prev[group] || [];
       if (current.includes(teamName)) {
-        return { ...prev, [group]: current.filter(t => t !== teamName) };
+        // Reset group selection on double tap to allow re-ordering
+        return { ...prev, [group]: [] };
       }
-      if (current.length >= 2) return prev;
-      return { ...prev, [group]: [...current, teamName] };
+      
+      const nextPicks = [...current, teamName];
+      
+      // Auto-fill 3rd and 4th place once top 2 are selected
+      if (nextPicks.length === 2) {
+        const groupTeams = groupsData[group] || [];
+        const remaining = groupTeams
+          .filter(t => !nextPicks.includes(t.name))
+          .map(t => t.name);
+        return { ...prev, [group]: [...nextPicks, ...remaining] };
+      }
+      
+      return { ...prev, [group]: nextPicks };
     });
-  }, []);
+  }, [groupsData, status]);
+
+  const toggleThirdPick = (teamName: string) => {
+    if (status?.group_locked) {
+      showToast('La fase de grupos está bloqueada.', 'error');
+      return;
+    }
+    setSelectedThirds(prev => {
+      if (prev.includes(teamName)) {
+        return prev.filter(t => t !== teamName);
+      }
+      if (prev.length >= 8) return prev;
+      return [...prev, teamName];
+    });
+  };
 
   const groupKeys = Object.keys(groupsData);
-  const groupsCompleted = groupKeys.filter(g => (groupPicks[g]?.length ?? 0) >= 2).length;
+  const groupsCompleted = groupKeys.filter(g => (groupPicks[g]?.length ?? 0) === 4).length;
   const groupProgress = groupKeys.length > 0 ? Math.round((groupsCompleted / groupKeys.length) * 100) : 0;
+
+  // Get the 12 third-place teams
+  const thirdPlaceTeams = groupKeys.map(g => {
+    const picks = groupPicks[g] || [];
+    if (picks.length >= 3) {
+      const teamName = picks[2];
+      const groupTeams = groupsData[g] || [];
+      const teamObj = groupTeams.find(t => t.name === teamName);
+      return { name: teamName, flag: teamObj?.flag || 'un', group: g };
+    }
+    return null;
+  }).filter(Boolean) as { name: string; flag: string; group: string }[];
 
   const getTeamOrPlaceholder = (groupKey: string, pos: 1 | 2) => {
     const picks = groupPicks[groupKey];
@@ -112,24 +291,44 @@ export default function Simulator() {
     return { name: `${pos}° Grupo ${groupKey}`, flag: 'un' };
   };
 
+  const getThirdTeamOrPlaceholder = (idx: number) => {
+    if (selectedThirds.length > idx) {
+      const teamName = selectedThirds[idx];
+      let flag = 'un';
+      for (const g of groupKeys) {
+        const found = (groupsData[g] || []).find(t => t.name === teamName);
+        if (found) {
+          flag = found.flag;
+          break;
+        }
+      }
+      return { name: teamName, flag };
+    }
+    return { name: `3° Clasificado ${idx + 1}`, flag: 'un' };
+  };
+
   const handleProceedToBracket = () => {
+    if (!status?.knockout_unlocked) {
+      showToast('La fase eliminatoria se habilitará cuando finalice la fase de grupos.', 'error');
+      return;
+    }
     const newR32: BracketMatch[] = [
       { id: 'r32_0', home: { team: getTeamOrPlaceholder('A', 2), winner: false }, away: { team: getTeamOrPlaceholder('B', 2), winner: false } },
       { id: 'r32_1', home: { team: getTeamOrPlaceholder('C', 1), winner: false }, away: { team: getTeamOrPlaceholder('F', 2), winner: false } },
-      { id: 'r32_2', home: { team: getTeamOrPlaceholder('E', 1), winner: false }, away: { team: { name: '3° Grupo A/B/C/D/F', flag: 'un' }, winner: false } },
+      { id: 'r32_2', home: { team: getTeamOrPlaceholder('E', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(0), winner: false } },
       { id: 'r32_3', home: { team: getTeamOrPlaceholder('F', 1), winner: false }, away: { team: getTeamOrPlaceholder('C', 2), winner: false } },
       { id: 'r32_4', home: { team: getTeamOrPlaceholder('E', 2), winner: false }, away: { team: getTeamOrPlaceholder('I', 2), winner: false } },
-      { id: 'r32_5', home: { team: getTeamOrPlaceholder('I', 1), winner: false }, away: { team: { name: '3° Grupo C/D/F/G/H', flag: 'un' }, winner: false } },
-      { id: 'r32_6', home: { team: getTeamOrPlaceholder('A', 1), winner: false }, away: { team: { name: '3° Grupo C/E/F/H/I', flag: 'un' }, winner: false } },
-      { id: 'r32_7', home: { team: getTeamOrPlaceholder('L', 1), winner: false }, away: { team: { name: '3° Grupo E/H/I/J/K', flag: 'un' }, winner: false } },
-      { id: 'r32_8', home: { team: getTeamOrPlaceholder('G', 1), winner: false }, away: { team: { name: '3° Grupo A/E/H/I/J', flag: 'un' }, winner: false } },
-      { id: 'r32_9', home: { team: getTeamOrPlaceholder('D', 1), winner: false }, away: { team: { name: '3° Grupo B/E/F/I/J', flag: 'un' }, winner: false } },
+      { id: 'r32_5', home: { team: getTeamOrPlaceholder('I', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(1), winner: false } },
+      { id: 'r32_6', home: { team: getTeamOrPlaceholder('A', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(2), winner: false } },
+      { id: 'r32_7', home: { team: getTeamOrPlaceholder('L', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(3), winner: false } },
+      { id: 'r32_8', home: { team: getTeamOrPlaceholder('G', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(4), winner: false } },
+      { id: 'r32_9', home: { team: getTeamOrPlaceholder('D', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(5), winner: false } },
       { id: 'r32_10', home: { team: getTeamOrPlaceholder('H', 1), winner: false }, away: { team: getTeamOrPlaceholder('J', 2), winner: false } },
       { id: 'r32_11', home: { team: getTeamOrPlaceholder('K', 2), winner: false }, away: { team: getTeamOrPlaceholder('L', 2), winner: false } },
-      { id: 'r32_12', home: { team: getTeamOrPlaceholder('B', 1), winner: false }, away: { team: { name: '3° Grupo E/F/G/I/J', flag: 'un' }, winner: false } },
+      { id: 'r32_12', home: { team: getTeamOrPlaceholder('B', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(6), winner: false } },
       { id: 'r32_13', home: { team: getTeamOrPlaceholder('D', 2), winner: false }, away: { team: getTeamOrPlaceholder('G', 2), winner: false } },
       { id: 'r32_14', home: { team: getTeamOrPlaceholder('J', 1), winner: false }, away: { team: getTeamOrPlaceholder('H', 2), winner: false } },
-      { id: 'r32_15', home: { team: getTeamOrPlaceholder('K', 1), winner: false }, away: { team: { name: '3° Grupo D/E/I/J/L', flag: 'un' }, winner: false } },
+      { id: 'r32_15', home: { team: getTeamOrPlaceholder('K', 1), winner: false }, away: { team: getThirdTeamOrPlaceholder(7), winner: false } },
     ];
     setR32(newR32);
     setR16(makeRound(8, 'r16_'));
@@ -142,72 +341,11 @@ export default function Simulator() {
     setActiveTab('bracket');
   };
 
-  // BRACKET state — 16avos (32), octavos (16), cuartos (8), semis (4), final (2), tercer puesto (1)
-  const makeRound = (n: number, prefix: string) =>
-    Array.from({ length: n }, (_, i) => emptyMatch(`${prefix}${i}`));
-
-  const [r32, setR32] = useState<BracketMatch[]>(makeRound(16, 'r32_'));
-  const [r16, setR16] = useState<BracketMatch[]>(makeRound(8, 'r16_'));
-  const [qf, setQf] = useState<BracketMatch[]>(makeRound(4, 'qf_'));
-  const [sf, setSf] = useState<BracketMatch[]>(makeRound(2, 'sf_'));
-  const [final3rd, setFinal3rd] = useState<BracketMatch[]>(makeRound(1, 'f3_'));
-  const [finalMatch, setFinalMatch] = useState<BracketMatch[]>(makeRound(1, 'fin_'));
-  const [champion, setChampion] = useState<TeamEntry | null>(null);
-  const [third, setThird] = useState<TeamEntry | null>(null);
-
-  // Generic advance function: picks winner in current round, seeds next round
-  const advanceTeam = useCallback((
-    roundSetter: React.Dispatch<React.SetStateAction<BracketMatch[]>>,
-    round: BracketMatch[],
-    matchIdx: number,
-    slot: 'home' | 'away',
-    nextRoundSetter?: React.Dispatch<React.SetStateAction<BracketMatch[]>>,
-    nextRound?: BracketMatch[],
-    nextMatchIdx?: number,
-    nextSlot?: 'home' | 'away',
-    onChampion?: (team: TeamEntry) => void
-  ) => {
-    const team = round[matchIdx][slot].team;
-    if (!team) return;
-
-    const newRound = round.map((m, i) => {
-      if (i !== matchIdx) return m;
-      return {
-        ...m,
-        home: { ...m.home, winner: slot === 'home' },
-        away: { ...m.away, winner: slot === 'away' },
-      };
-    });
-    roundSetter(newRound);
-
-    if (onChampion) {
-      onChampion(team);
-      return;
-    }
-
-    if (nextRoundSetter && nextRound && nextMatchIdx !== undefined && nextSlot) {
-      const newNext = nextRound.map((m, i) => {
-        if (i !== nextMatchIdx) return m;
-        return { ...m, [nextSlot]: { team, winner: false } };
-      });
-      nextRoundSetter(newNext);
-    }
-  }, []);
-
-  if (loading || !isAuthenticated) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Spinner />
-      </div>
-    );
-  }
-
   // ─── RENDER HELPERS ─────────────────────────────────────────────────────────
   function TeamFlag({ team, size = 28 }: { team: TeamEntry | null; size?: number }) {
     if (!team) return <span style={{ opacity: 0.3, fontSize: '0.75rem', fontWeight: 800 }}>TBD</span>;
     return (
       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={FLAG_URL(team.flag)}
           alt={team.name}
@@ -216,7 +354,7 @@ export default function Simulator() {
           style={{ borderRadius: 3, objectFit: 'cover', border: '1px solid var(--border)' }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
-        <span style={{ fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+        <span style={{ fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', maxWidth: '120px' }}>
           {team.name}
         </span>
       </span>
@@ -230,14 +368,27 @@ export default function Simulator() {
     label?: string;
     onPick: (slot: 'home' | 'away') => void;
   }) {
+    const isDisabled = !status?.knockout_unlocked;
     return (
       <div className="bracket-match-card">
-        {label && <div className="bracket-match-label">{label}</div>}
+        {label && (
+          <div style={{ 
+            fontSize: '0.55rem', 
+            padding: '0.25rem 0.5rem', 
+            background: 'var(--bg)', 
+            borderBottom: '1px solid var(--border)', 
+            textAlign: 'center', 
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: 'var(--accent)'
+          }}>
+            {label}
+          </div>
+        )}
         <button
           className={`bracket-team-row ${match.home.winner ? 'winner' : ''}`}
           onClick={() => onPick('home')}
-          disabled={!match.home.team}
-          title={match.home.team ? `Seleccionar ${match.home.team.name}` : 'Equipo no definido aún'}
+          disabled={!match.home.team || isDisabled}
         >
           <TeamFlag team={match.home.team} />
           {match.home.winner && <span className="winner-crown">👑</span>}
@@ -246,8 +397,7 @@ export default function Simulator() {
         <button
           className={`bracket-team-row ${match.away.winner ? 'winner' : ''}`}
           onClick={() => onPick('away')}
-          disabled={!match.away.team}
-          title={match.away.team ? `Seleccionar ${match.away.team.name}` : 'Equipo no definido aún'}
+          disabled={!match.away.team || isDisabled}
         >
           <TeamFlag team={match.away.team} />
           {match.away.winner && <span className="winner-crown">👑</span>}
@@ -256,28 +406,6 @@ export default function Simulator() {
     );
   }
 
-  function RoundColumn({ title, matches, onPick }: {
-    title: string;
-    matches: BracketMatch[];
-    onPick: (idx: number, slot: 'home' | 'away') => void;
-  }) {
-    return (
-      <div className="bracket-round-col">
-        <div className="bracket-round-title">{title}</div>
-        <div className="bracket-round-matches">
-          {matches.map((m, i) => (
-            <BracketMatchCard
-              key={m.id}
-              match={m}
-              onPick={(slot) => onPick(i, slot)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // ─── JSX ────────────────────────────────────────────────────────────────────
   return (
     <AppLayout activeRoute="/simulator">
       <style>{`
@@ -389,7 +517,9 @@ export default function Simulator() {
         .team-sim-row:last-child { margin-bottom: 0; }
         .team-sim-row:hover { border-color: var(--accent-soft); background: rgba(255,61,0,0.03); }
         .team-sim-row.pos-1 { border-color: var(--success); background: rgba(0,210,106,0.06); }
-        .team-sim-row.pos-2 { border-color: var(--primary); background: rgba(92,69,242,0.06); }
+        .team-sim-row.pos-2 { border-color: var(--primary); background: rgba(0,102,204,0.06); }
+        .team-sim-row.pos-3 { border-color: var(--warning, #f0a500); background: rgba(240,165,0,0.06); }
+        .team-sim-row.pos-4 { border-color: var(--danger, #ff3d00); background: rgba(255,61,0,0.06); }
         .team-flag-row {
           display: flex;
           align-items: center;
@@ -409,65 +539,69 @@ export default function Simulator() {
         }
         .pos-1 .pos-badge-sim { background: var(--success); color: white; }
         .pos-2 .pos-badge-sim { background: var(--primary); color: white; }
+        .pos-3 .pos-badge-sim { background: var(--warning, #f0a500); color: white; }
+        .pos-4 .pos-badge-sim { background: var(--danger, #ff3d00); color: white; }
 
-        /* ── BRACKET ── */
+        /* ── BRACKET TREE STRUCTURE ── */
         .bracket-scroll-wrapper {
           overflow-x: auto;
-          padding-bottom: 1rem;
           -webkit-overflow-scrolling: touch;
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none;  /* IE/Edge */
+        }
+        .bracket-scroll-wrapper::-webkit-scrollbar {
+          display: none; /* Safari/Chrome */
         }
         .bracket-container {
           display: flex;
-          gap: 1rem;
+          gap: 2rem;
+          height: 980px;
+          align-items: stretch;
+          padding: 1rem 0.5rem;
           min-width: max-content;
-          padding: 1rem 0.5rem 2rem;
-          align-items: flex-start;
         }
         .bracket-round-col {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          min-width: 190px;
-          max-width: 210px;
+          min-width: 200px;
+          max-width: 220px;
         }
         .bracket-round-title {
-          font-size: 0.6rem;
+          font-size: 0.65rem;
           font-weight: 900;
           text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--fg-muted);
+          letter-spacing: 0.12em;
+          color: var(--accent);
           padding: 0 0.5rem;
-          margin-bottom: 0.25rem;
+          margin-bottom: 0.5rem;
+          text-align: center;
+          border-bottom: 2px solid var(--border);
+          padding-bottom: 0.5rem;
         }
         .bracket-round-matches {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          justify-content: space-around;
+          flex-grow: 1;
         }
         .bracket-match-card {
           background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-sm);
+          border: 1.5px solid var(--border);
+          border-radius: 16px;
           overflow: hidden;
           box-shadow: var(--shadow-sm);
-          transition: border-color 0.2s, box-shadow 0.2s;
+          transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
-        .bracket-match-card:hover { border-color: var(--accent-soft); box-shadow: var(--shadow-md); }
-        .bracket-match-label {
-          font-size: 0.5rem;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--fg-muted);
-          padding: 0.3rem 0.75rem;
-          background: var(--bg);
-          border-bottom: 1px solid var(--border);
+        .bracket-match-card:hover { 
+          border-color: var(--accent); 
+          box-shadow: var(--shadow-md), 0 5px 15px rgba(255, 61, 0, 0.08); 
+          transform: scale(1.02);
         }
         .bracket-team-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0.6rem 0.75rem;
+          padding: 0.45rem 0.75rem;
           width: 100%;
           background: transparent;
           border: none;
@@ -479,17 +613,17 @@ export default function Simulator() {
         .bracket-team-row:hover:not(:disabled) { background: var(--bg); }
         .bracket-team-row.winner { background: var(--accent); color: white; }
         .bracket-team-row.winner img { border-color: rgba(255,255,255,0.3); }
-        .bracket-team-row:disabled { cursor: default; opacity: 0.5; }
+        .bracket-team-row:disabled { cursor: default; opacity: 0.6; }
         .bracket-vs {
           text-align: center;
-          font-size: 0.6rem;
+          font-size: 0.55rem;
           font-weight: 900;
-          opacity: 0.3;
+          opacity: 0.25;
           padding: 0.15rem;
           border-top: 1px solid var(--border);
           border-bottom: 1px solid var(--border);
         }
-        .winner-crown { font-size: 0.75rem; margin-left: 0.25rem; }
+        .winner-crown { font-size: 0.8rem; margin-left: 0.25rem; }
 
         /* ── CHAMPION BOX ── */
         .champion-reveal {
@@ -527,18 +661,6 @@ export default function Simulator() {
           text-transform: uppercase;
           letter-spacing: 0.2em;
           opacity: 0.7;
-        }
-
-        /* ── BRACKET SEPARATOR ── */
-        .bracket-divider {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          padding: 0 0.25rem;
-          color: var(--border);
-          font-size: 1.5rem;
-          opacity: 0.4;
         }
 
         /* ── RULES PANEL ── */
@@ -587,7 +709,6 @@ export default function Simulator() {
         @media (max-width: 640px) {
           .sim-tab-nav { width: 100%; overflow-x: auto; }
           .groups-grid-full { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-          .bracket-round-col { min-width: 160px; }
         }
         @media (max-width: 400px) {
           .groups-grid-full { grid-template-columns: 1fr; }
@@ -601,6 +722,17 @@ export default function Simulator() {
           <h1>EL CAMINO A LA <span className="text-accent">GLORIA</span></h1>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button 
+            onClick={handleSave} 
+            className="btn-primary" 
+            style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            disabled={saving}
+          >
+            💾 {saving ? 'GUARDANDO...' : 'GUARDAR EN DB'}
+          </button>
+          <button onClick={handleReset} className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}>
+            🔄 REINICIAR
+          </button>
           <span className="pill purple">Mundial 2026</span>
           <span className="pill" style={{ background: 'var(--bg)', border: '1px solid var(--border)', fontSize: '0.7rem' }}>
             48 equipos · 12 grupos
@@ -640,22 +772,19 @@ export default function Simulator() {
         </button>
       </nav>
 
-      {/* ════════════════════════════════════════════
-          TAB: REGLAS
-      ════════════════════════════════════════════ */}
+      {/* REGLAS TAB */}
       {activeTab === 'reglas' && (
         <div>
           <div className="sim-info-box">
             <span className="sim-info-box-icon">💡</span>
             <div>
               <div style={{ fontWeight: 900, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                ¿Cómo funciona el sistema de puntos?
+                ¿Cómo funciona el simulador completo?
               </div>
               <p style={{ fontSize: '0.82rem', color: 'var(--fg-muted)', fontWeight: 600, lineHeight: 1.6 }}>
-                Cada vez que se juega un partido, comparamos tu pronóstico con el resultado real.
-                Puedes ganar puntos por acertar el ganador <strong>(resultado)</strong>, por acertar el 
-                score exacto, o por acertar qué equipos llegan lejos en el torneo. 
-                ¡Entre más preciso seas, más puntos sumas!
+                Clasifica los 12 grupos seleccionando tu 1° y 2° puesto en cada uno. Los puestos 3° y 4° se llenarán automáticamente.
+                Elige los <strong>8 mejores terceros</strong> para avanzar a la Ronda de 32, y finalmente juega el bracket interactivo hasta el campeón.
+                Recuerda presionar el botón <strong>GUARDAR EN DB</strong> para registrar tu simulación.
               </p>
             </div>
           </div>
@@ -673,68 +802,15 @@ export default function Simulator() {
               </div>
             ))}
           </div>
-
-          <h3 style={{ marginBottom: '1.5rem' }}>Reglas <span className="text-accent">Generales</span></h3>
-          <div className="card">
-            {[
-              { n: '01', rule: 'Cierre de pronósticos', detail: 'Los pronósticos de cada partido cierran exactamente cuando empieza el partido. Ningún cambio después del pitazo inicial.' },
-              { n: '02', rule: 'Pronóstico mínimo', detail: 'Para participar en una liga, debes haber pronosticado al menos 1 partido. Sin pronósticos = sin posición en la tabla.' },
-              { n: '03', rule: 'Empates', detail: 'En fase de grupos puede haber empates. En eliminatorias, si el partido va a tiempo extra o penales, el pronóstico válido es solo el resultado al 90 minutos.' },
-              { n: '04', rule: 'Bonus de eliminatorias', detail: 'Los puntos por campeón, finalista y semifinalistas se otorgan una sola vez al finalizar cada ronda. Se calculan retroactivamente si el equipo llegó lejos.' },
-              { n: '05', rule: 'Privacidad de pronósticos', detail: 'Los pronósticos de otros miembros son invisibles hasta que el partido comienza. Así todos juegan de forma independiente.' },
-              { n: '06', rule: 'Empate en clasificación', detail: 'Si dos jugadores tienen los mismos puntos, se desempata por: (1) mayor número de exactos, (2) mayor número de partidos pronosticados.' },
-            ].map(item => (
-              <div key={item.n} style={{
-                display: 'flex',
-                gap: '1.25rem',
-                paddingBottom: '1.25rem',
-                marginBottom: '1.25rem',
-                borderBottom: '1px solid var(--border)',
-                alignItems: 'flex-start',
-              }}
-                className="last:border-0 last:mb-0 last:pb-0"
-              >
-                <span style={{
-                  fontWeight: 900,
-                  fontSize: '1.25rem',
-                  fontStyle: 'italic',
-                  color: 'var(--accent)',
-                  opacity: 0.4,
-                  lineHeight: 1,
-                  flexShrink: 0,
-                  minWidth: '2rem',
-                }}>
-                  {item.n}
-                </span>
-                <div>
-                  <div style={{ fontWeight: 900, fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-                    {item.rule}
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--fg-muted)', fontWeight: 600, lineHeight: 1.5 }}>
-                    {item.detail}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button className="btn-primary" onClick={() => setActiveTab('grupos')}>
-              ⚽ Ir a Fase de Grupos →
-            </button>
-          </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: GRUPOS
-      ════════════════════════════════════════════ */}
+      {/* GRUPOS TAB */}
       {activeTab === 'grupos' && (
         <div>
-          {/* Progress */}
           <div className="sim-progress-wrap">
             <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
-              Progreso: <span className="text-accent">{groupsCompleted}/12</span>
+              Progreso Grupos: <span className="text-accent">{groupsCompleted}/12</span>
             </div>
             <div className="sim-progress-bar">
               <div className="sim-progress-fill" style={{ width: `${groupProgress}%` }} />
@@ -745,87 +821,145 @@ export default function Simulator() {
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
-            <p style={{ fontSize: '0.82rem', color: 'var(--fg-muted)', fontWeight: 600 }}>
-              Selecciona los <strong>2 clasificados por grupo</strong> (1° y 2° puesto). Haz click en el 1° primero y luego en el 2°.
-            </p>
+            {status?.group_locked ? (
+              <p style={{ fontSize: '0.82rem', color: 'var(--danger)', fontWeight: 800 }}>
+                🔒 La fase de grupos está bloqueada. Ya inició el primer partido de la última fecha del fixture.
+              </p>
+            ) : (
+              <p style={{ fontSize: '0.82rem', color: 'var(--fg-muted)', fontWeight: 600 }}>
+                Selecciona tu <strong>1° y 2° lugar</strong>. Haz click en un equipo para seleccionarlo, o haz click de nuevo para reiniciar el grupo.
+              </p>
+            )}
           </div>
 
-          <div className="groups-grid-full">
-            {groupKeys.map(g => {
-              const picks = groupPicks[g] || [];
-              const isComplete = picks.length === 2;
-              return (
-                <div key={g} className={`group-card-sim ${isComplete ? 'complete' : ''}`}>
-                  <div className="group-title-sim">
-                    GRUPO {g}
-                    {isComplete && <span className="group-complete-badge">✓ Listo</span>}
-                  </div>
-                  <div>
-                    {groupsData[g].map(team => {
-                      const pickedPos = picks.indexOf(team.name);
-                      const pos = pickedPos >= 0 ? pickedPos + 1 : null;
+          {groupsLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+              <Spinner />
+            </div>
+          ) : (
+            <>
+              <div className="groups-grid-full">
+                {groupKeys.map(g => {
+                  const picks = groupPicks[g] || [];
+                  const isComplete = picks.length === 4;
+                  return (
+                    <div key={g} className={`group-card-sim ${isComplete ? 'complete' : ''}`}>
+                      <div className="group-title-sim">
+                        GRUPO {g}
+                        {isComplete && <span className="group-complete-badge">✓ Listo</span>}
+                      </div>
+                      <div>
+                        {groupsData[g].map(team => {
+                          const pickedPos = picks.indexOf(team.name);
+                          const pos = pickedPos >= 0 ? pickedPos + 1 : null;
+                          return (
+                            <div
+                              key={team.name}
+                              className={`team-sim-row ${pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : pos === 4 ? 'pos-4' : ''}`}
+                              onClick={() => handleGroupPick(g, team.name)}
+                              style={{ cursor: status?.group_locked ? 'not-allowed' : 'pointer' }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && handleGroupPick(g, team.name)}
+                            >
+                              <span className="team-flag-row">
+                                <img
+                                  src={FLAG_URL(team.flag)}
+                                  alt={team.name}
+                                  width={24}
+                                  height={16}
+                                  style={{ borderRadius: 2, border: '1px solid var(--border)' }}
+                                />
+                                {team.name}
+                              </span>
+                              {pos && (
+                                <span className="pos-badge-sim">
+                                  {pos}°
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Selection of 8 best thirds */}
+              {groupsCompleted === 12 && (
+                <div className="card" style={{ marginTop: '2.5rem', border: '2px solid var(--accent)', background: 'var(--surface)', padding: '2rem' }}>
+                  <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span>🌟</span> Selección de Mejores Terceros
+                  </h3>
+                  <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '1.5rem', fontWeight: 600 }}>
+                    Elige exactamente <strong style={{ color: 'var(--accent)' }}>8 equipos</strong> de los que terminaron en 3° lugar para avanzar al cuadro eliminatorio:
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                    {thirdPlaceTeams.map(team => {
+                      const isSelected = selectedThirds.includes(team.name);
                       return (
-                        <div
+                        <button
                           key={team.name}
-                          className={`team-sim-row ${pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : ''}`}
-                          onClick={() => handleGroupPick(g, team.name)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => e.key === 'Enter' && handleGroupPick(g, team.name)}
+                          type="button"
+                          onClick={() => toggleThirdPick(team.name)}
+                          className={`team-sim-row ${isSelected ? 'pos-3' : ''}`}
+                          style={{ 
+                            cursor: status?.group_locked ? 'not-allowed' : 'pointer', 
+                            opacity: !isSelected && selectedThirds.length >= 8 ? 0.5 : 1 
+                          }}
                         >
                           <span className="team-flag-row">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={FLAG_URL(team.flag)}
                               alt={team.name}
                               width={24}
                               height={16}
                               style={{ borderRadius: 2, border: '1px solid var(--border)' }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
-                            {team.name}
+                            <span>{team.name} <span style={{ opacity: 0.5, fontSize: '0.7rem' }}>({team.group})</span></span>
                           </span>
-                          {pos && (
-                            <span className="pos-badge-sim">
-                              {pos === 1 ? '1°' : '2°'}
-                            </span>
-                          )}
-                        </div>
+                          {isSelected && <span style={{ fontSize: '0.75rem' }}>⭐</span>}
+                        </button>
                       );
                     })}
                   </div>
+                  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 900 }}>
+                      Seleccionados: <span className="text-accent" style={{ fontSize: '1.25rem' }}>{selectedThirds.length}/8</span>
+                    </span>
+                    {selectedThirds.length === 8 && (
+                      <button className="btn-primary" onClick={handleProceedToBracket} style={{ padding: '0.75rem 2rem' }}>
+                        🏆 Ir al Bracket Eliminatorio →
+                      </button>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {groupsCompleted >= 6 && (
-            <div style={{ marginTop: '2rem' }}>
-              <button className="btn-primary" onClick={handleProceedToBracket}>
-                🏆 Continuar al Bracket Eliminatorio →
-              </button>
-            </div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: BRACKET
-      ════════════════════════════════════════════ */}
+      {/* BRACKET TAB */}
       {activeTab === 'bracket' && (
         <div>
           <div className="sim-info-box" style={{ marginBottom: '1.5rem' }}>
             <span className="sim-info-box-icon">📌</span>
             <div style={{ fontSize: '0.8rem', color: 'var(--fg-muted)', fontWeight: 600 }}>
-              <strong style={{ color: 'var(--fg)' }}>Cómo usar:</strong> Haz click en el equipo que crees que ganará cada partido para avanzarlo a la siguiente ronda.
-              El bracket se actualiza automáticamente. Puedes cambiar tu selección en cualquier momento.
+              {!status?.knockout_unlocked ? (
+                <strong style={{ color: 'var(--danger)' }}>🔒 La fase eliminatoria está bloqueada hasta que finalice toda la fase de grupos.</strong>
+              ) : (
+                <>
+                  <strong style={{ color: 'var(--fg)' }}>Instrucciones:</strong> Haz click en el equipo que ganará cada duelo para avanzarlo de ronda.
+                </>
+              )}
             </div>
           </div>
 
           <div className="bracket-scroll-wrapper custom-scrollbar">
             <div className="bracket-container">
-
-              {/* ── 16avos de Final ── */}
+              {/* 16avos de Final (32) */}
               <div className="bracket-round-col">
                 <div className="bracket-round-title">16avos de Final (32)</div>
                 <div className="bracket-round-matches">
@@ -854,9 +988,9 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* Octavos */}
+              {/* Octavos (16) */}
               <div className="bracket-round-col">
-                <div className="bracket-round-title">Octavos de Final (16)</div>
+                <div className="bracket-round-title">Octavos (16)</div>
                 <div className="bracket-round-matches">
                   {r16.map((m, i) => (
                     <BracketMatchCard
@@ -883,9 +1017,9 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* Cuartos */}
+              {/* Cuartos (8) */}
               <div className="bracket-round-col">
-                <div className="bracket-round-title">Cuartos de Final (8)</div>
+                <div className="bracket-round-title">Cuartos (8)</div>
                 <div className="bracket-round-matches">
                   {qf.map((m, i) => (
                     <BracketMatchCard
@@ -911,7 +1045,7 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* Semis */}
+              {/* Semifinales (4) */}
               <div className="bracket-round-col">
                 <div className="bracket-round-title">Semifinales (4)</div>
                 <div className="bracket-round-matches">
@@ -928,13 +1062,11 @@ export default function Simulator() {
                           home: { ...x.home, winner: slot === 'home' },
                           away: { ...x.away, winner: slot === 'away' },
                         }));
-                        // Winner → final
                         const nextSlot = i % 2 === 0 ? 'home' : 'away';
                         setFinalMatch(prev => [{
                           ...prev[0],
                           [nextSlot]: { team, winner: false },
                         }]);
-                        // Loser → 3rd place
                         const lSlot = i % 2 === 0 ? 'home' : 'away';
                         if (loser) setFinal3rd(prev => [{ ...prev[0], [lSlot]: { team: loser, winner: false } }]);
                       }}
@@ -943,62 +1075,57 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* Final + 3er Puesto */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 190 }}>
-                <div className="bracket-round-col">
-                  <div className="bracket-round-title">🏆 Gran Final</div>
-                  <div className="bracket-round-matches">
-                    {finalMatch.map((m, i) => (
-                      <BracketMatchCard
-                        key={m.id}
-                        match={m}
-                        onPick={(slot) => {
-                          const team = m[slot].team;
-                          if (!team) return;
-                          setFinalMatch([{
-                            ...m,
-                            home: { ...m.home, winner: slot === 'home' },
-                            away: { ...m.away, winner: slot === 'away' },
-                          }]);
-                          setChampion(team);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="bracket-round-col">
-                  <div className="bracket-round-title">🥉 3er Puesto</div>
-                  <div className="bracket-round-matches">
-                    {final3rd.map((m) => (
-                      <BracketMatchCard
-                        key={m.id}
-                        match={m}
-                        onPick={(slot) => {
-                          const team = m[slot].team;
-                          if (!team) return;
-                          setFinal3rd([{
-                            ...m,
-                            home: { ...m.home, winner: slot === 'home' },
-                            away: { ...m.away, winner: slot === 'away' },
-                          }]);
-                          setThird(team);
-                        }}
-                      />
-                    ))}
-                  </div>
+              {/* Final Match & 3rd Place */}
+              <div className="bracket-round-col">
+                <div className="bracket-round-title">🏆 Finales</div>
+                <div className="bracket-round-matches">
+                  {finalMatch.map((m) => (
+                    <BracketMatchCard
+                      key={m.id}
+                      match={m}
+                      label="Gran Final"
+                      onPick={(slot) => {
+                        const team = m[slot].team;
+                        if (!team) return;
+                        setFinalMatch([{
+                          ...m,
+                          home: { ...m.home, winner: slot === 'home' },
+                          away: { ...m.away, winner: slot === 'away' },
+                        }]);
+                        setChampion(team);
+                      }}
+                    />
+                  ))}
+                  {final3rd.map((m) => (
+                    <BracketMatchCard
+                      key={m.id}
+                      match={m}
+                      label="Tercer Puesto"
+                      onPick={(slot) => {
+                        const team = m[slot].team;
+                        if (!team) return;
+                        setFinal3rd([{
+                          ...m,
+                          home: { ...m.home, winner: slot === 'home' },
+                          away: { ...m.away, winner: slot === 'away' },
+                        }]);
+                        setThird(team);
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
 
             </div>
           </div>
 
-          {/* Champion reveal */}
+          {/* Champion Display */}
           {champion && (
-            <div className="champion-reveal">
+            <div className="champion-reveal animate-fade-in">
               <div className="champion-label">🏆 Campeón del Mundo 2026</div>
               <div className="champion-name">{champion.name}</div>
               {third && (
-                <div style={{ marginTop: '1.5rem', opacity: 0.7, fontSize: '0.8rem', fontWeight: 800 }}>
+                <div style={{ marginTop: '1.5rem', opacity: 0.8, fontSize: '0.85rem', fontWeight: 800 }}>
                   🥉 Tercer lugar: {third.name}
                 </div>
               )}

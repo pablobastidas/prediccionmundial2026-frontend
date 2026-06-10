@@ -116,14 +116,17 @@ export default function PredictionsPage() {
   }, [isAuthenticated, stage, activeLeagueId]);
 
   const handleScoreChange = (matchId: number, team: 'home' | 'away', value: string) => {
-    setEdits(prev => ({
-      ...prev,
-      [matchId]: {
-        ...prev[matchId],
-        [team]: value,
-        id: predictions.find(p => p.match_id === matchId)?.id
-      }
-    }));
+    setEdits(prev => {
+      const current = prev[matchId] || { home: '', away: '' };
+      return {
+        ...prev,
+        [matchId]: {
+          home: team === 'home' ? value : (current.home ?? ''),
+          away: team === 'away' ? value : (current.away ?? ''),
+          id: current.id ?? predictions.find(p => p.match_id === matchId)?.id
+        }
+      };
+    });
   };
 
   const pendingChanges = Object.keys(edits).filter(matchIdStr => {
@@ -416,6 +419,27 @@ export default function PredictionsPage() {
                 const existing = predictions.find(p => p.match_id === match.id);
                 const isSaved = !!existing && !isPending;
 
+                const homeGoals = edit.home !== '' ? parseInt(edit.home) : NaN;
+                const awayGoals = edit.away !== '' ? parseInt(edit.away) : NaN;
+                const hasScore = !isNaN(homeGoals) && !isNaN(awayGoals);
+                const isL = hasScore && homeGoals > awayGoals;
+                const isE = hasScore && homeGoals === awayGoals;
+                const isV = hasScore && homeGoals < awayGoals;
+
+                const handleQuickPick = (outcome: 'L' | 'E' | 'V') => {
+                  if (isFinished) return;
+                  if (outcome === 'L') {
+                    handleScoreChange(match.id, 'home', '2');
+                    handleScoreChange(match.id, 'away', '1');
+                  } else if (outcome === 'E') {
+                    handleScoreChange(match.id, 'home', '1');
+                    handleScoreChange(match.id, 'away', '1');
+                  } else if (outcome === 'V') {
+                    handleScoreChange(match.id, 'home', '1');
+                    handleScoreChange(match.id, 'away', '2');
+                  }
+                };
+
                 // Determine border color based on state
                 const borderColor = isFinished
                   ? '#00D26A'  // wc-green
@@ -443,7 +467,14 @@ export default function PredictionsPage() {
                     }}
                   >
                     <div className="match-v2-header">
-                      <span>🏟️ <FormattedDate dateStr={match.match_datetime} format="full" /></span>
+                      <span>
+                        🏟️ <FormattedDate dateStr={match.match_datetime} format="full" />
+                        {match.venue && (
+                          <span style={{ marginLeft: '0.4rem', opacity: 0.65, fontSize: '0.65rem' }}>
+                            · {match.venue.city}
+                          </span>
+                        )}
+                      </span>
                       {isFinished ? (
                         <span style={{ color: '#00D26A', fontWeight: 800, fontSize: '0.7rem' }}>✅ FINALIZADO</span>
                       ) : isSaved ? (
@@ -481,17 +512,41 @@ export default function PredictionsPage() {
                         </div>
                       </div>
                       <div className="prediction-controls">
-                        {/* 1x2 Options Placeholder */}
+                        {/* 1x2 Options Indicator / Quick Pick */}
                         <div className="options-1x2">
-                          <button className="opt-btn"><span>L</span></button>
-                          <button className="opt-btn"><span>E</span></button>
-                          <button className="opt-btn"><span>V</span></button>
+                          <button 
+                            type="button"
+                            className={`opt-btn ${isL ? 'active' : ''}`}
+                            onClick={() => handleQuickPick('L')}
+                            disabled={isFinished}
+                          >
+                            <span>L</span>
+                            <span>Local</span>
+                          </button>
+                          <button 
+                            type="button"
+                            className={`opt-btn ${isE ? 'active' : ''}`}
+                            onClick={() => handleQuickPick('E')}
+                            disabled={isFinished}
+                          >
+                            <span>E</span>
+                            <span>Empate</span>
+                          </button>
+                          <button 
+                            type="button"
+                            className={`opt-btn ${isV ? 'active' : ''}`}
+                            onClick={() => handleQuickPick('V')}
+                            disabled={isFinished}
+                          >
+                            <span>V</span>
+                            <span>Visita</span>
+                          </button>
                         </div>
                         <div className="score-inputs">
                           <input 
                             type="number" 
                             placeholder="0" 
-                            value={edit.home}
+                            value={edit.home ?? ''}
                             onChange={(e) => handleScoreChange(match.id, 'home', e.target.value)}
                             disabled={isFinished}
                             style={{
@@ -502,7 +557,7 @@ export default function PredictionsPage() {
                           <input 
                             type="number" 
                             placeholder="0" 
-                            value={edit.away}
+                            value={edit.away ?? ''}
                             onChange={(e) => handleScoreChange(match.id, 'away', e.target.value)}
                             disabled={isFinished}
                             style={{

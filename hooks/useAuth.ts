@@ -58,8 +58,12 @@ export const useAuth = () => {
           setUser(null);
           setSessionExpired(true);
           // Redirect to login only if we are on a protected page
-          if (typeof window !== 'undefined' && !['/login', '/register'].includes(window.location.pathname)) {
-            router.push('/login?message=session_expired');
+          if (typeof window !== 'undefined') {
+            const path = window.location.pathname;
+            const isProtected = ['/home', '/predictions', '/simulator', '/leagues', '/me', '/create-league', '/explore-leagues', '/join-league'].some(route => path.startsWith(route));
+            if (isProtected) {
+              router.push('/login?message=session_expired');
+            }
           }
         }
       }

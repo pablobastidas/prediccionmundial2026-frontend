@@ -1,6 +1,10 @@
+"use client";
 import React from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
+  const { isAuthenticated, loading } = useAuth();
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -137,8 +141,16 @@ export default function Home() {
             <a href="#sedes" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Sedes</a>
             <a href="/simulator-public" style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Simulador</a>
             <div className="flex" style={{ gap: '0.75rem' }}>
-              <a href="/login" className="btn-secondary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', borderRadius: '99px' }}>Entrar</a>
-              <a href="/register" className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', borderRadius: '99px' }}>Unirse</a>
+              {loading ? (
+                <span style={{ fontSize: '0.7rem', color: 'var(--fg-muted)' }}>Cargando...</span>
+              ) : isAuthenticated ? (
+                <Link href="/home" className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', borderRadius: '99px' }}>Mi Panel</Link>
+              ) : (
+                <>
+                  <Link href="/login" className="btn-secondary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', borderRadius: '99px' }}>Entrar</Link>
+                  <Link href="/register" className="btn-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.7rem', borderRadius: '99px' }}>Unirse</Link>
+                </>
+              )}
             </div>
           </div>
         </nav>
@@ -361,8 +373,8 @@ export default function Home() {
           <div className="footer-bottom">
             <div className="copyright">© 2026 PollaMundial. Todos los derechos reservados.</div>
             <div className="footer-legal">
-              <a href="#">Términos</a>
-              <a href="#">Privacidad</a>
+              <Link href="/terms">Términos</Link>
+              <Link href="/privacy">Privacidad</Link>
               <a href="#">Cookies</a>
             </div>
           </div>

@@ -104,23 +104,27 @@ export default function HomeDashboard() {
         .group-mini-table tr:last-child td {
           border-bottom: none;
         }
-        .group-select {
-          width: auto;
-          padding: 0.3rem 1.75rem 0.3rem 0.5rem;
-          border: 1px solid var(--border);
-          background: var(--surface);
-          color: var(--fg);
-          border-radius: var(--radius-sm);
-          font-size: 0.75rem;
-          font-weight: 800;
-          outline: none;
-          cursor: pointer;
-          appearance: none;
-          background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 0.5rem center;
-          background-size: 10px;
+        /* Group pill selector — no combobox */
+        .group-pills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.35rem;
         }
+        .group-pill {
+          padding: 0.3rem 0.7rem;
+          border-radius: 99px;
+          font-size: 0.65rem;
+          font-weight: 900;
+          font-style: italic;
+          border: 2px solid var(--border);
+          background: var(--bg);
+          color: var(--fg-muted);
+          cursor: pointer;
+          transition: all 0.15s;
+          text-transform: uppercase;
+        }
+        .group-pill:hover { border-color: var(--primary); color: var(--primary); }
+        .group-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
       `}} />
 
       {/* Header */}
@@ -263,48 +267,56 @@ export default function HomeDashboard() {
               ) : (
                 upcomingMatches.map(match => (
                   <div key={match.id} className="match-card-modern">
+                    {/* Home Team */}
                     <div className="team-item">
                       {match.home_team ? (
                         <>
-                          <img 
-                            src={`https://flagcdn.com/w160/${match.home_team.flag_emoji?.toLowerCase()}.png`} 
-                            className="team-logo" 
-                            alt={match.home_team.name} 
+                          <img
+                            src={`https://flagcdn.com/w80/${match.home_team.flag_emoji?.toLowerCase()}.png`}
+                            style={{ width: '56px', height: '38px', borderRadius: '6px', border: '1px solid var(--border)', objectFit: 'cover', boxShadow: 'var(--shadow-sm)' }}
+                            alt={match.home_team.name}
                           />
-                          <span className="team-name">{match.home_team.name}</span>
+                          <span className="team-name" style={{ fontSize: '0.72rem' }}>{match.home_team.name}</span>
                         </>
                       ) : (
                         <>
-                          <div className="team-logo flex items-center justify-center bg-wc-muted/20 text-white font-bold">?</div>
-                          <span className="team-name opacity-50">{match.home_placeholder}</span>
+                          <div style={{ width: '56px', height: '38px', borderRadius: '6px', background: 'var(--bg)', border: '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>?</div>
+                          <span className="team-name opacity-50" style={{ fontSize: '0.72rem' }}>{match.home_placeholder}</span>
                         </>
                       )}
                     </div>
 
+                    {/* Center */}
                     <div className="match-center-modern">
                       <span className="match-pill">
                         <FormattedDate dateStr={match.match_datetime} format="short" />
                       </span>
-                      <div className="match-score">vs</div>
-                      <Link href="/predictions" className="btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.75rem', borderRadius: '99px' }}>
+                      {match.venue && (
+                        <span style={{ fontSize: '0.58rem', color: 'var(--fg-muted)', fontWeight: 700, textAlign: 'center' }}>
+                          📍 {match.venue.city}
+                        </span>
+                      )}
+                      <div style={{ fontSize: '1.1rem', fontWeight: 900, fontStyle: 'italic', opacity: 0.25 }}>VS</div>
+                      <Link href="/predictions" className="btn-primary" style={{ padding: '0.55rem 1.1rem', fontSize: '0.7rem', borderRadius: '99px' }}>
                         Pronosticar
                       </Link>
                     </div>
 
+                    {/* Away Team */}
                     <div className="team-item">
                       {match.away_team ? (
                         <>
-                          <img 
-                            src={`https://flagcdn.com/w160/${match.away_team.flag_emoji?.toLowerCase()}.png`} 
-                            className="team-logo" 
-                            alt={match.away_team.name} 
+                          <img
+                            src={`https://flagcdn.com/w80/${match.away_team.flag_emoji?.toLowerCase()}.png`}
+                            style={{ width: '56px', height: '38px', borderRadius: '6px', border: '1px solid var(--border)', objectFit: 'cover', boxShadow: 'var(--shadow-sm)' }}
+                            alt={match.away_team.name}
                           />
-                          <span className="team-name">{match.away_team.name}</span>
+                          <span className="team-name" style={{ fontSize: '0.72rem' }}>{match.away_team.name}</span>
                         </>
                       ) : (
                         <>
-                          <div className="team-logo flex items-center justify-center bg-wc-muted/20 text-white font-bold">?</div>
-                          <span className="team-name opacity-50">{match.away_placeholder}</span>
+                          <div style={{ width: '56px', height: '38px', borderRadius: '6px', background: 'var(--bg)', border: '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800 }}>?</div>
+                          <span className="team-name opacity-50" style={{ fontSize: '0.72rem' }}>{match.away_placeholder}</span>
                         </>
                       )}
                     </div>
@@ -336,18 +348,20 @@ export default function HomeDashboard() {
             </div>
 
             {/* Group Standings Mini */}
-            <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0 }}>Tablas de <span className="text-accent">Grupos</span></h3>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Tablas de <span className="text-accent">Grupos</span></h3>
               {groups.length > 0 && (
-                <select 
-                  className="group-select" 
-                  value={selectedGroupId || ''} 
-                  onChange={(e) => setSelectedGroupId(Number(e.target.value))}
-                >
+                <div className="group-pills custom-scrollbar" style={{ overflowX: 'auto', flexWrap: 'nowrap', paddingBottom: '0.25rem', marginBottom: '1rem' }}>
                   {groups.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
+                    <button
+                      key={g.id}
+                      className={`group-pill ${selectedGroupId === g.id ? 'active' : ''}`}
+                      onClick={() => setSelectedGroupId(g.id)}
+                    >
+                      {g.name.replace('Grupo ', '')}
+                    </button>
                   ))}
-                </select>
+                </div>
               )}
             </div>
             <div className="card" style={{ marginBottom: '2rem' }}>

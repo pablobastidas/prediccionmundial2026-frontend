@@ -30,8 +30,14 @@ export default function LiveTicker() {
           }
           const date = new Date(m.match_datetime);
           const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          const time = date.toLocaleTimeString('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
-          const dateStr = date.toLocaleDateString('es-ES', { timeZone: tz, month: 'short', day: 'numeric' });
+          const optionsTime: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+          const optionsDate: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+          if (tz) {
+            optionsTime.timeZone = tz;
+            optionsDate.timeZone = tz;
+          }
+          const time = date.toLocaleTimeString('es-ES', optionsTime);
+          const dateStr = date.toLocaleDateString('es-ES', optionsDate);
           return { live: false, text: `🏆 PRÓXIMO: ${home.toUpperCase()} VS ${away.toUpperCase()} (${dateStr} ${time})` };
         });
 

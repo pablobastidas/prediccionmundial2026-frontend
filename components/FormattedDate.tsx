@@ -19,48 +19,36 @@ export default function FormattedDate({ dateStr, format = 'full' }: FormattedDat
 
   try {
     const date = new Date(dateStr);
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    
-    if (format === 'time') {
-      return (
-        <span>
-          {date.toLocaleTimeString('es-ES', {
-            timeZone: tz,
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
-        </span>
-      );
-    }
-    
-    if (format === 'short') {
-      const datePart = date.toLocaleDateString('es-ES', {
-        timeZone: tz,
-        month: 'short',
-        day: 'numeric'
-      });
-      const timePart = date.toLocaleTimeString('es-ES', {
-        timeZone: tz,
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      return <span>{datePart} · {timePart}</span>;
+    if (isNaN(date.getTime())) {
+      return <span>{dateStr}</span>;
     }
 
-    // Default full format
-    return (
-      <span>
-        {date.toLocaleString('es-ES', {
-          timeZone: tz,
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}
-      </span>
-    );
+    const options: Intl.DateTimeFormatOptions = {};
+    
+    if (format === 'time') {
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+    } else if (format === 'short') {
+      options.month = 'short';
+      options.day = 'numeric';
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+    } else {
+      options.weekday = 'short';
+      options.month = 'short';
+      options.day = 'numeric';
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+    }
+
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) {
+      options.timeZone = tz;
+    }
+
+    return <span>{date.toLocaleString('es-ES', options)}</span>;
   } catch (e) {
+    console.error("Error formatting date:", e);
     return <span>{dateStr}</span>;
   }
 }

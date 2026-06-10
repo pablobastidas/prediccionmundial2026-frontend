@@ -29,6 +29,14 @@ export interface TeamInfo {
   flag_emoji?: string;
 }
 
+export interface VenueInfo {
+  id: number;
+  name: string;
+  city: string;
+  country_emoji?: string;
+  capacity?: number;
+}
+
 export interface Match {
   id: number;
   home_team?: TeamInfo;
@@ -38,6 +46,7 @@ export interface Match {
   match_datetime: string;
   stage: string;
   status: string;
+  venue?: VenueInfo | null;
   result?: { home_goals: number; away_goals: number } | null;
 }
 

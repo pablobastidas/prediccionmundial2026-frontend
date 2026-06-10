@@ -31,8 +31,8 @@ export default function CreateLeaguePage() {
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = 'El nombre de la liga es obligatorio.';
     if (form.name.trim().length < 3) newErrors.name = 'El nombre debe tener al menos 3 caracteres.';
-    if (form.max_members < 2 || form.max_members > 100)
-      newErrors.max_members = 'El máximo de miembros debe estar entre 2 y 100.';
+    if (form.max_members < 2 || form.max_members > 20)
+      newErrors.max_members = 'El máximo de miembros debe estar entre 2 y 20.';
     return newErrors;
   };
 
@@ -141,21 +141,54 @@ export default function CreateLeaguePage() {
           {/* Max Members */}
           <div style={{ marginBottom: '2rem' }}>
             <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', opacity: 0.6 }}>
-              Máximo de Participantes
+              Límite de Participantes *
             </label>
-            <input
-              type="number"
-              min={2}
-              max={100}
-              className={`form-control ${errors.max_members ? 'border-red-500' : ''}`}
-              value={form.max_members}
-              onChange={e => setForm(f => ({ ...f, max_members: parseInt(e.target.value) || 20 }))}
-              required
-            />
+            <div className="flex items-center" style={{ gap: '1.25rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              <div className="flex items-center" style={{ gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, max_members: Math.max(2, f.max_members - 1) }))}
+                  className="btn-secondary"
+                  style={{ width: '36px', height: '36px', padding: 0, display: 'grid', placeItems: 'center', borderRadius: '50%', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  disabled={form.max_members <= 2}
+                >
+                  -
+                </button>
+                <div style={{ minWidth: '70px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--accent)' }}>{form.max_members}</span>
+                  <span style={{ fontSize: '0.65rem', display: 'block', opacity: 0.5, fontWeight: 800, textTransform: 'uppercase' }}>Amigos</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, max_members: Math.min(20, f.max_members + 1) }))}
+                  className="btn-secondary"
+                  style={{ width: '36px', height: '36px', padding: 0, display: 'grid', placeItems: 'center', borderRadius: '50%', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  disabled={form.max_members >= 20}
+                >
+                  +
+                </button>
+              </div>
+              <input
+                type="range"
+                min={2}
+                max={20}
+                value={form.max_members}
+                onChange={e => setForm(f => ({ ...f, max_members: parseInt(e.target.value) || 10 }))}
+                style={{ 
+                  flex: 1, 
+                  minWidth: '150px',
+                  accentColor: 'var(--accent)',
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: 'var(--border)',
+                  outline: 'none'
+                }}
+              />
+            </div>
             {errors.max_members && (
               <p className="mt-1.5 text-xs text-red-500 font-semibold">{errors.max_members}</p>
             )}
-            <p className="mt-1.5 text-xs text-wc-white/40">Entre 2 y 100 participantes.</p>
+            <p className="mt-1.5 text-xs text-wc-white/40" style={{ marginTop: '0.75rem' }}>Entre 2 y 20 participantes.</p>
           </div>
 
           <button 
