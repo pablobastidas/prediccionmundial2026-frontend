@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import AppLayout from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/Spinner';
-import Footer from '@/components/landing/Footer';
 
 export default function PrivacyPolicyPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -271,7 +270,51 @@ export default function PrivacyPolicyPage() {
       {/* Main Content */}
       <main style={{ width: '100%', overflow: 'hidden', background: 'var(--bg)' }}>
         {privacyContent}
-      </main>      <Footer />
+      </main>
+
+      {/* Footer */}
+      <footer className="main-footer">
+        <div className="container">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
+              <p>La plataforma oficial de predicciones para el Mundial 2026. Vive la emoción del fútbol, compite con amigos y gana premios increíbles.</p>
+              <div className="footer-socials">
+                <a href="#" className="social-link">𝕏</a>
+                <a href="#" className="social-link">IG</a>
+                <a href="#" className="social-link">FB</a>
+                <a href="#" className="social-link">YT</a>
+              </div>
+            </div>
+            
+            <div className="footer-column">
+              <h4>Torneo</h4>
+              <ul className="footer-links">
+                <li><Link href="/#grupos">Grupos</Link></li>
+                <li><Link href="/#sedes">Sedes y Estadios</Link></li>
+                <li><Link href="/simulator-public">Simulador de Llaves</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-column">
+              <h4>Comunidad</h4>
+              <ul className="footer-links">
+                <li><Link href="/explore-leagues">Explorar Ligas</Link></li>
+                <li><Link href="/leagues">Rankings Globales</Link></li>
+                <li><Link href="/register">Crear Cuenta</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <div className="copyright">© 2026 Desafío Mundial. Todos los derechos reservados.</div>
+            <div className="footer-legal">
+              <Link href="/terms">Términos</Link>
+              <Link href="/privacy">Privacidad</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
