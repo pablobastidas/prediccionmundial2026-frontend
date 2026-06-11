@@ -26,7 +26,9 @@ export const useAuth = () => {
         setLoading(false);
         if (session?.access_token) {
           const maxAge = session.expires_in || 3600;
-          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const secureFlag = isSecure ? '; Secure' : '';
+          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
         }
       }
     }).catch((err) => {
@@ -42,12 +44,15 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
 
+        const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+        const secureFlag = isSecure ? '; Secure' : '';
+
         // Sync access token to cookie
         if (session?.access_token) {
           const maxAge = session.expires_in || 3600;
-          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
         } else {
-          document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax; Secure`;
+          document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
         }
 
         if (event === 'TOKEN_REFRESHED') {
