@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import Footer from '@/components/landing/Footer';
 
 export default function Home() {
   const { isAuthenticated, loading } = useAuth();
@@ -325,61 +326,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="main-footer">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <div className="logo">DESAFÍO<span>MUNDIAL</span></div>
-              <p>La plataforma oficial de predicciones para el Mundial 2026. Vive la emoción del fútbol, compite con amigos y gana premios increíbles.</p>
-              <div className="footer-socials">
-                <a href="#" className="social-link">𝕏</a>
-                <a href="#" className="social-link">IG</a>
-                <a href="#" className="social-link">FB</a>
-                <a href="#" className="social-link">YT</a>
-              </div>
-            </div>
-            
-            <div className="footer-column">
-              <h4>Torneo</h4>
-              <ul className="footer-links">
-                <li><a href="#grupos">Grupos</a></li>
-                <li><a href="#sedes">Sedes y Estadios</a></li>
-                <li><a href="/simulator-public">Simulador de Llaves</a></li>
-                <li><a href="#">Calendario</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-column">
-              <h4>Comunidad</h4>
-              <ul className="footer-links">
-                <li><a href="/explore-leagues">Explorar Ligas</a></li>
-                <li><a href="/leagues">Rankings Globales</a></li>
-                <li><a href="/register">Crear Cuenta</a></li>
-                <li><a href="#">Ayuda y Soporte</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-column">
-              <h4>Sedes 2026</h4>
-              <ul className="footer-links">
-                <li><a href="#">México (Azteca, Monterrey)</a></li>
-                <li><a href="#">USA (New York, LA, Miami)</a></li>
-                <li><a href="#">Canadá (Toronto, Vancouver)</a></li>
-                <li><a href="#">Guía del Viajero</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <div className="copyright">© 2026 Desafío Mundial. Todos los derechos reservados.</div>
-            <div className="footer-legal">
-              <Link href="/terms">Términos</Link>
-              <Link href="/privacy">Privacidad</Link>
-              <a href="#">Cookies</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

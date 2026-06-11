@@ -8,6 +8,7 @@ export default function Register() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -16,6 +17,10 @@ export default function Register() {
     e.preventDefault();
     if (password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (!acceptTerms) {
+      setError('Debes aceptar los Términos y Condiciones para registrarte.');
       return;
     }
     setLoading(true);
@@ -108,8 +113,29 @@ export default function Register() {
               />
             </div>
 
+            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <input
+                id="acceptTerms"
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                disabled={loading}
+                style={{ 
+                  marginTop: '0.2rem', 
+                  width: '18px', 
+                  height: '18px', 
+                  accentColor: 'var(--accent)',
+                  cursor: 'pointer' 
+                }}
+                required
+              />
+              <label htmlFor="acceptTerms" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--fg-muted)', cursor: 'pointer', lineHeight: '1.4' }}>
+                Acepto los <Link href="/terms" target="_blank" style={{ color: 'var(--accent)', fontWeight: 800 }}>Términos y Condiciones</Link> y la <Link href="/privacy" target="_blank" style={{ color: 'var(--accent)', fontWeight: 800 }}>Política de Privacidad</Link>.
+              </label>
+            </div>
+
             <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
-              {loading ? 'UNINEDOSE...' : 'UNIRSE AL MUNDIAL'}
+              {loading ? 'UNINDOSE...' : 'UNIRSE AL MUNDIAL'}
             </button>
           </form>
 
